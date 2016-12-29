@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>return_top</title>
+	<style type="text/css">
+		.hide {
+			display:none;
+		}
+		.returnTop {
+			position:fixed;
+			width:70px;
+			height: 60px;
+			right:20px;
+			bottom: 20px;
+			background-color: red;
+			color: white;
+		}
+	</style>
+</head>
+<body>
+	<div style="height: 3000px;">aaaa</div>
+	<div class="returnTop" id="return_top">返回顶部</div>
+
+
+<script src='/Users/Rosen/jquery.js' ></script>
+<script type="text/javascript">
+		// This function is executed when the site is loaded.
+	$(function () {
+		$('#return_top').click(function () {
+			$(window).scrollTop(0);
+		});
+	})
+
+	$(window).scroll( function () {
+		var num = $(window).scrollTop();
+		if (num > 0) {
+			// return to top
+			$(function () {
+				$("#return_top").removeClass('hide');
+			})
+		}
+		else {
+			$("#return_top").addClass('hide')
+		}
+	})
+</script>
+
+</body>
+</html>

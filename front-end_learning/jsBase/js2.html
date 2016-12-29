@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+	</head>
+	<body>
+		<p id="demo">JavaScript 能改变HTML元素的内容。</p>
+		<p id="demo2">JavaScript 能改变HTML元素的样式。</p>
+		<script src="js/1.js"></script>
+		<button type="button" onclick="myfunc()">点击这里改变内容</button>
+		<button type="button" onclick="myfunc2()">点击这里改变样式</button>
+
+		<!--
+		<img src="/i/eg_bulboff.gif" id="myimage" onclick="changeImage()">
+		-->
+		<br/><br/>
+		<input type="text" id="demo3">
+		<button type="button" onclick="is_num()">点击这里</button>
+		<br/><br/>
+
+		<p id="demo4">A Paragraph.</p>
+		<div id="mydiv">A Div.</div>
+		<button type="button" onclick="myfunc3()">点击这里</button>
+		<script>
+		function myfunc3() {
+			// body...
+			document.getElementById('demo4').innerHTML="Hello World";
+			document.getElementById("mydiv").innerHTML="How are you?"
+		}
+		</script>
+		<p>点击这里来创建变量，并显示结果</p>
+		<button onclick="myfunc4()">点击这里</button>
+		<p id="demo5"></p>
+		<script>
+			function myfunc4() {
+				var carname = "Volvo";
+				document.getElementById('demo5').innerHTML=carname;
+				// body...
+			}
+		</script>
+	</body>
+</html>

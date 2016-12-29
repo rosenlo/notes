@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script src="/Users/Rosen/jquery.min.js"></script>
+</head>
+<body>
+
+<form id="ff">
+    <input type="text" name="test1"/>
+    <input type="text" name="test2"/>
+    <input type="text" name="test3"/>
+    <input type="text" name="test4"/>
+    <input type="button" id="save" value="save"/>
+</form>
+
+<script>
+    $("#save").on("click", function () {
+        var params = $("#ff").serializeArray();
+        var j = {};
+        for (var item in params) {
+            j[params[item].name] = params[item].value;
+        }
+        console.log(j)
+
+        /*
+         $.ajax({
+         url: 'multi_data.html',
+         data: JSON.stringify(j),
+         type: 'post',
+         dataType: 'json',
+         headers: {
+         Accept: "application/json",
+         "Content-Type": "application/json"
+         },
+         processData: false,
+         cache: false
+         }).done(function (data) {
+         });
+         */
+
+    });
+
+</script>
+</body>
+</html>

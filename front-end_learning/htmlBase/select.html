@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SELECT</title>
+</head>
+
+<body>
+<div>
+    <label for="favorite_team">Favorite Team:</label>
+    <input type="text" name="team" id="favorite_team" list="team_list">
+    <datalist id="team_list">
+        <option>Detroit Lions</option>
+        <option>Detroit Pistons</option>
+        <option>Detroit Red Wings</option>
+        <option>Detroit Tigers</option>
+    </datalist>
+
+    <select>
+        <option>上海</option>
+        <option>北京</option>
+        <option>广州</option>
+    </select>
+
+    <select multiple="multiple" size="2">
+        <option>上海</option>
+        <option>北京</option>
+        <option>广州</option>
+        <option>深圳</option>
+    </select>
+
+    <select>
+        <optgroup label="湖南省">
+            <option>长沙</option>
+            <option>益阳</option>
+        </optgroup>
+        <optgroup label="广东省">
+            <option>广州</option>
+            <option>深圳</option>
+        </optgroup>
+    </select>
+</div>
+
+<div class="row">
+    <div class="col-sm-6">
+        <div class="dataTables_length" id="example1_length"><label>Show <select name="example1_length"
+                                                                                aria-controls="example1"
+                                                                                class="form-control input-sm">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select> entries</label></div>
+    </div>
+    <div class="col-sm-6">
+        <div id="example1_filter" class="dataTables_filter">
+            <label>Search:<input type="search"
+                                 class="form-control input-sm"
+                                 placeholder=""
+                                 aria-controls="example1">
+            </label>
+        </div>
+    </div>
+</div>
+</body>
+</html>

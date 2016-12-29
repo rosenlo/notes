@@ -1,0 +1,179 @@
+ <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>可以输入的select下拉框 与input文本框完美结合 - Liehuo.Net</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf8" />
+<script type="text/javascript">
+// function doAJAX()
+//   {
+//
+//             http_request=null;
+//             if (window.XMLHttpRequest)
+//             {
+//                 http_request=new XMLHttpRequest();
+//             }
+//             else (window.ActiveXObject)
+//            {
+//                http_request=new ActiveXObject("Microsoft.XMLHTTP");
+//            }
+//            http_request.onreadystatechange = GetDate;
+//              var S = document.getElementById("txtMovName").value;
+//              var url='?sABC='+escape(S);
+//
+//           http_request.open('POST',url,true);
+//           http_request.send(null);
+//           }
+//            function GetDate()
+//            {
+//              if (http_request.readyState==4||1==1)
+//            {
+//                if(http_request.status==200||1==1)
+//                {
+//
+//                   var a= http_request.responseText.split(",");
+//                   if(a!="")
+//                   {
+//
+//                        document.getElementById("sl11").style.display="block";
+//                        //清空原来的OPTIONS
+//                         var nL = document.getElementById("sl11").options.length;
+//                           while(nL>0)
+//                           {
+//                                //alert(document.Form1.ddlMovName.options.length);
+//                                document.getElementById("sl11").remove(document.getElementById("sl11").options.length-1);
+//                                nL = document.getElementById("sl11").options.length;
+//                          }
+//
+//                           for(i=0;i<a.length;i++)
+//                           {
+//                              var opt=new Option();
+//                               opt.value=a[i]    ;
+//                               opt.text=a[i];
+//                              var sel1Object = document.getElementById("sl11");
+//                               sel1Object.add(opt);
+//                           }
+//                           if(a.length>15)
+//                           {
+//                            document.getElementById("sl11").size=15;
+//                           }
+//                      }
+//                      else
+//
+//                      {
+//                                                document.getElementById("sl11").style.display="none";
+//                      }
+//               }
+//               }
+//            }
+//以上方法是从后取数据，以下方法写死数据
+function doAJAX()
+{
+var c =document.getElementById("txtMovName").value;
+var b="";
+if(c=="a")
+{
+b="a开头的数据1,a开头的数据2,a开头的数据3,a开头的数据4,a开头的数据5,a开头的数据6,a开头的数据7";
+}
+else
+{
+b="不是a开头的数据1,不是a开头的数据2,不是a开头的数据3";
+}
+var a= b.split(",");
+if(a.length>0)
+{
+document.getElementById("sl11").style.display="block";
+//清空原来的OPTIONS
+var nL = document.getElementById("sl11").options.length;
+while(nL>0)
+{
+//alert(document.Form1.ddlMovName.options.length);
+document.getElementById("sl11").remove(document.getElementById("sl11").options.length-1);
+document.getElementById("sl11")
+nL = document.getElementById("sl11").options.length;
+}
+for(i=0;i<a.length;i++)
+{
+var opt=new Option();
+opt.value=a[i]    ;
+opt.text=a[i];
+var sel1Object = document.getElementById("sl11");
+sel1Object.add(opt);
+}
+if(a.length>15)
+{
+document.getElementById("sl11").size=15;
+}
+}
+else
+{
+document.getElementById("sl11").style.display="none";
+}
+}
+function aa()
+{
+document.getElementById("sl11").style.display="none";
+document.getElementById("txtMovName").value=document.getElementById("sl11").value;
+}
+document.onkeydown=bb;
+function bb(){
+if (event.keyCode==40)
+{
+var srcElem = document.activeElement
+var testval = srcElem.name;
+if(testval=="txtMovName")
+{
+document.getElementById("sl11").focus();
+//document.getElementById("sl11").options[0].selected = true
+}
+//alert("");
+}
+if(event.keyCode==13)
+{
+//alert("123");
+event.returnValue   =   false;
+var srcElem = document.activeElement
+var testval = srcElem.name;
+if(testval=="sl11")
+{
+aa();
+}
+}
+}
+function cc()
+{
+var srcElem = document.activeElement
+var testval = srcElem.name;
+if(testval!="sl11"&&testval!="txtMovName")
+{
+document.getElementById("sl11").style.display="none";
+}
+}
+</script>
+</head>
+<body>
+<form id="form1" autocomplete="off">
+<table  border="0" cellpadding="0" cellspacing="0" class="td">
+<tr>
+<td style="width: 43px">
+</td>
+<td>
+ <div  style=" position:absolute;  ;z-index:2;" ><input name="txtMovName" type="text" maxlength="30" id="txtMovName" onblur="cc();"
+onkeyup="doAJAX()" style="width:245px;" /></div>
+<select  style="display:none;position:absolute; top:35px;z-index:2; width:250px;" ondblclick="aa();" onblur="cc();" name="sl11" id="sl11" multiple/>
+</td>
+</tr>
+</table>
+<div   id="Layer1"   style="position:absolute;   width:357px;   height:40px;   z-index:0;   left:   218px;   top:   271px;clip:rect(0,102,60,65)">
+<select   name="select" style=" width:182px"  onchange="txtID.value=this[selectedIndex].text">
+<option>111111</option>
+<option>22222222</option>
+<option>3333333</option>
+<option>4444</option>
+</select>
+</div>
+<div   id="Layer2"   style="position:absolute;   width:357px;   height:40px;   z-index:2;   left:   220px;   top:   270px">
+<input   type="text"   name="txtID"  style=" width:157px"  size="8"   value=""   maxlength=8>
+</div>
+</form>
+</body>
+</html><br /><center>如不能显示效果，请按Ctrl+F5刷新本页，更多网页代码：<a href='http://www.veryhuo.com/' target='_blank'>http://www.veryhuo.com/</a></center>

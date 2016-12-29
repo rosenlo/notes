@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<style type="text/css">
+			.hide {
+				display: none;
+			}
+			.gray {
+				color: gray;
+			}
+			.black {
+				color: black;
+			}
+		</style>
+	</head>
+	<body>
+		<!--
+		<script type="text/javascript">
+		document.write("<h1>This is a heading</h1>");
+		document.write("<p>this is a paragraph</p>");
+		</script>
+		<button type="button" onclick="alert('Welcome!')">点击这里</button>
+		-->
+		
+		<div id="t1">呵呵</div>
+		<form id="f1" action="https://www.sogou.com/web?" method="GET">
+			<input id="query" type="text" name="query" />
+			<!-- <input type="submit" value="提交"> -->
+			<input type="button" value="伪提交" onclick="Foo()"/>
+			
+		</form>
+
+		<input type="text" class="gray" id="tip" value="请输入关键字" onfocus="Enter()" onblur="Leave()"/>
+
+		<div style="width: 300px; height:20px; background-color: #ddd">
+			<div id="process" style="width:10%; height:20px; background-color: black">
+				
+			</div>
+		</div>
+
+		<input type="button" onclick="stop()" id="stop"  value="停止" >
+
+		<script> 
+			/*
+			function Foo() {
+				document.getElementById('f1').submit();
+				// body...
+			}
+			*/
+			/*
+			var id1 = document.getElementById('t1');
+			id1.className = 'hide';
+			*/
+			function Enter() {
+				var id = document.getElementById('tip');
+				id.className = 'black';
+
+				if (id.value == '请输入关键字' || id.value.trim() == '') {
+					id.value = ''
+				}
+			}
+
+			function Leave() {
+				var id = document.getElementById('tip');
+				var val = id.value;
+				if (val.length == 0 || id.value.trim() == '') {
+					id.value = '请输入关键字';
+					id.className = 'gray';
+				}
+				else {
+						id.className = 'black';
+
+					}
+				// body...
+			}
+			/*	 title滚动效果
+			pro = 10
+			function Foo() {
+				var id = document.getElementById('process');
+				pro = pro + 90;
+				if (pro > 100) {
+					clearInterval;
+				}
+				else {
+					id.style.width = pro + '%';
+				}
+			}
+			interval = setInterval("Foo()", 3000);
+			*/
+			
+			// 中断即将来的操作
+			pro = 10
+			function Foo() {
+				var id = document.getElementById('process');
+				pro = pro + 90;
+				id.style.width = pro + '%';
+			}
+			interval = setTimeout("Foo()", 3000);
+
+			function stop() {
+				clearTimeout(interval)
+			}
+
+		</script>
+
+	</body>
+</html>

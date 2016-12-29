@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="css/common.css">
+</head>
+<body>
+	<div class="container">
+		<div class="tab-menu-box1">
+			<div class="menu">
+				<ul id="tab-menu-title">
+					<li class="current" content-to='1'>价格趋势</li>
+					<li content-to='2'>市场分布</li>
+					<li content-to='3'>其他</li>
+				</ul>
+			</div>
+
+			<div id="tab-menu-body" class="content">
+				<div content='1'>content1</div>
+				<div content='2' class="hide">content2</div>
+				<div content='3' class="hide">content3</div>
+			</div>
+		</div>
+	</div>
+	<script src='/Users/Rosen/jquery.js'></script>
+	<script type="text/javascript">
+		$(function () {
+			ChangeTab("#tab-menu-title", "#tab-menu-body");
+		})
+		function ChangeTab(title, body) {
+			$(title).children().bind("click", function () {
+				var menu = $(this);
+				var content = $(body).find('div[content="' + $(this).attr("content-to") + '"]');
+				menu.addClass("current").siblings().removeClass('current');
+				content.removeClass('hide').siblings().addClass('hide');
+
+			})
+		}
+	</script>
+
+
+</body>
+</html>

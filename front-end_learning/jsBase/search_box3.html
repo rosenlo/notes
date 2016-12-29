@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8' />
+        <title></title>
+        
+        <style>
+            .gray{
+                color:gray;
+            }
+            .black{
+                color:black;
+            }
+        </style>
+        <script type="text/javascript">
+            function Enter(){
+               var id= document.getElementById("tip")
+               id.className = 'black';
+               if(id.value=='请输入关键字'||id.value.trim()==''){
+                    id.value = ''
+               }
+            }
+            function Leave(){
+                var id= document.getElementById("tip")
+                var val = id.value;
+                if(val.length==0||id.value.trim()==''){
+                    id.value = '请输入关键字'
+                    id.className = 'gray';
+                }else{
+                    id.className = 'black';
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <input type='text' class='gray' id='tip' value='请输入关键字' onfocus='Enter();'  onblur='Leave();'/>
+    </body>
+</html>
+
+搜索框

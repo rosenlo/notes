@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<style type="text/css">
+			.hide {
+				display: none;
+			}
+			.gray {
+				color: gray;
+			}
+			.black {
+				color: black;
+			}
+		</style>
+	</head>
+	<body>
+		<!--
+		<script type="text/javascript">
+		document.write("<h1>This is a heading</h1>");
+		document.write("<p>this is a paragraph</p>");
+		</script>
+		<button type="button" onclick="alert('Welcome!')">点击这里</button>
+		-->
+		
+		<div id="t1">呵呵</div>
+
+		<input type="text" class="gray" id="tip" value="请输入关键字" />
+
+		<script src='/Users/Rosen/jquery.js' ></script>
+		<script type='text/javascript' > 
+
+			$(function() {
+			    $('#tip').focus(function() {
+			        var id = $(this);
+			        id.addClass('black');
+			        if (id.val() == '请输入关键字' || id.val().trim() == '') {
+			            id.val('');
+			        }
+			    });
+
+			    $('#tip').blur(function() {
+			        var id = $(this);
+			        if (id.val().length == 0 || id.val().trim() == '') {
+			            id.val('请输入关键字');
+			            id.attr('class', 'gray');
+			        } else {
+			            id.attr('class', 'balck');
+			        }
+			    })
+
+			})
+
+		</script>
+
+	</body>
+</html>

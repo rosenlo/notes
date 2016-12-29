@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8' />
+        <title></title>
+        <script src='/Users/Rosen/jquery.js' ></script>
+        <script type="text/javascript">
+            function select_all() {
+                $("#reverseAll").click(function () {
+                    $("#checklist :checkbox").each(function () {
+                        var i = $(this).attr('checked') 
+                        console.log(i)
+                        $(this).attr("checked", !$(this).attr('checked'));
+                    })
+                })
+            }
+
+        </script>
+    </head>
+    <body>
+    <div id="checklist">
+        <input type="checkbox" value="1"/> 
+        <input type="checkbox" value="2" />
+        <input type="checkbox" value="3" name=""/>
+        <input type="checkbox" id='reverseAll'  onclick="select_all()" /> sss
+    </div>
+
+    <br/>
+
+<!--
+    <div>
+        <input id="reverseAll" type="checkbox"  />
+    </div>
+-->
+
+    <script type="text/javascript">
+        function select_alla() {
+            var v = document.getElementById('chk').checked;
+            console.log(v)
+            $.each($("#checklist input[type=checkbox]"), function (i, n) {
+                n.checked = v;
+            });
+        }
+    </script>
+
+
+    </body>
+</html>
+
