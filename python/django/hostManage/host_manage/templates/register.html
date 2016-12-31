@@ -9,12 +9,13 @@
 <body>
 
     <form action="" method="post">
-        Username: {{ forms.username }}<br>
-        Password: {{ forms.password }}<br>
-        Email: {{ forms.email }}<br>
+        username : {{ forms.username }}<br>
+        password : {{ forms.password }}<br>
+        email: {{ forms.email}}<br>
 {#        {{ forms.as_table }}#}
-        <input type="submit" value="提交">
+        admin: <input type="radio" name="role" value="admin" required>
+        user: <input type="radio" name="role" value="user" required><br>
+        <input type="submit" value="注册">
     </form>
-
 </body>
 </html>

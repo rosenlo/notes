@@ -12,7 +12,8 @@
     Username: {{ forms.username }}<br>
     Password: {{ forms.password }}<br>
     {#        {{ forms.as_table }}#}
-    <input type="submit" value="登录"> <a href="/register/"><input type="button" value="立即注册"></a>
+    <input type="submit" value="登录"> <a href="/register"><input type="button" value="立即注册"></a>
+    <span style="color: darkred;">{{ message }}</span>
 </form>
 
 </body>
