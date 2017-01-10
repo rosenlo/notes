@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login</title>
+</head>
+<body>
+
+<form action="" method="post">
+    Username: {{ forms.username }}<br>
+    Password: {{ forms.password }}<br>
+    {#        {{ forms.as_table }}#}
+    <input type="submit" value="登录"> <a href="/register"><input type="button" value="立即注册"></a>
+    <span style="color: darkred;">{{ message }}</span>
+</form>
+
+</body>
+</html>

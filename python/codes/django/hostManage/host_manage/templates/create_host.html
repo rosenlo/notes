@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create host</title>
+</head>
+<body>
+
+<form action="" method="post">
+    hostname : {{ forms.hostname }}<br>
+    ip: {{ forms.ip }}<br>
+    {#        {{ forms.as_table }}#}
+    属于组：admin<label>
+    <input type="checkbox" name="host_group" value="admin">
+</label>
+    user<input type="checkbox" name="host_group" value="user"><br>
+    <input type="submit" value="创建"> <span style="color: red;">{{ message }}</span>
+</form>
+
+</body>
+</html>

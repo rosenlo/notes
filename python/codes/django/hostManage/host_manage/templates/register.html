@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register</title>
+</head>
+<body>
+
+    <form action="" method="post">
+        username : {{ forms.username }}<br>
+        password : {{ forms.password }}<br>
+        email: {{ forms.email}}<br>
+{#        {{ forms.as_table }}#}
+        admin: <input type="radio" name="role" value="admin" required>
+        user: <input type="radio" name="role" value="user" required><br>
+        <input type="submit" value="注册">
+    </form>
+</body>
+</html>
