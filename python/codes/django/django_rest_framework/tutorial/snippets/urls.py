@@ -9,14 +9,15 @@ Created Time: 2/8/17 21:06
 """
 
 from django.conf.urls import url, include
+from rest_framework.routers import DefaultRouter
+
 from snippets.views import *
-from rest_framework.urlpatterns import format_suffix_patterns
+
+router = DefaultRouter()
+router.register(r'snippets', SnippetViewSet)
+router.register(r'users', UserViewSet)
 
 urlpatterns = [
-    url(r'^snippets/$', SnippetList.as_view()),
-    url(r'^snippets/(?P<pk>[0-9]+)/$', SnippetDetail.as_view()),
-    url(r'^users/$', UserList.as_view()),
-    url(r'^users/(?P<pk>[0-9]+)/$', UserDetail.as_view()),
+    url(r'^', include(router.urls)),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
-
-urlpatterns = format_suffix_patterns(urlpatterns)
