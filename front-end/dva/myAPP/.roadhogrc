@@ -1,0 +1,7 @@
+{
+  "entry": "src/index.js",
+  "disableCSSModules": true,
+  "extraBabelPlugins": [
+    "transform-runtime"
+  ]
+}
