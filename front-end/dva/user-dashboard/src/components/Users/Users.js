@@ -2,11 +2,11 @@ import React from 'react';
 import {connect} from 'dva';
 import {Table, Pagination, Popconfirm} from 'antd';
 import {routerRedux} from 'dva/router';
-import styles from './Users.css';
+import styles from './users.css';
 import {PAGE_SIZE} from '../../constants';
-import UserModal from './UserModal';
+import UserModal from './user_modal';
 
-function Users({dispatch, list: dataSource, loading, total, page: current}) {
+function users({dispatch, list: dataSource, loading, total, page: current}) {
   function deleteHandler(id) {
     dispatch({
       type: 'users/remove',
@@ -93,4 +93,4 @@ function mapStateToProps(state) {
   };
 }
 
-export default connect(mapStateToProps)(Users)
+export default connect(mapStateToProps)(users)

@@ -1,0 +1,3 @@
+{
+  "tests/test_auth.py::test_register_validate_input[a--Password is required!]": true
+}

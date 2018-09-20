@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Bootstrap Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+      /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
+      .row.content {height: 550px}
+        
+      /* Set gray background color and 100% height */
+      .sidenav {
+        background-color: #f1f1f1;
+        height: 100%;
+      }
+                  
+      /* On small screens, set height to 'auto' for the grid */
+      @media screen and (max-width: 767px) {
+        .row.content {height: auto;}
+      }
+      /* Remove the navbar's default margin-bottom and rounded borders */ 
+      .navbar {
+        margin-bottom: 0;
+        border-radius: 0;
+      }
+      
+      /* Add a gray background color and some padding to the footer */
+      footer {
+        background-color: #f2f2f2;
+        padding: 25px;
+      }
+    </style>
+  </head>
+
+  <body>
+      <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>                        
+            </button>
+            <a class="navbar-brand" href="#">Portfolio</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#">About</a></li>
+              <li><a href="#">Gallery</a></li>
+              <li><a href="#">Contact</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="#"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      
+      <nav class="navbar navbar-inverse visible-xs">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>                        
+            </button>
+            <a class="navbar-brand" href="#">Logo</a>
+          </div>
+          <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav">
+              <li class="active"><a href="#">Dashboard</a></li>
+              <li><a href="#">Age</a></li>
+              <li><a href="#">Gender</a></li>
+              <li><a href="#">Geo</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      
+      <div class="container-fluid">
+        <div class="row content">
+          <div class="col-sm-3 sidenav hidden-xs">
+            <h2>Logo</h2>
+            <ul class="nav nav-pills nav-stacked">
+              <li class="active"><a href="#section1">Dashboard</a></li>
+              <li><a href="#section2">Age</a></li>
+              <li><a href="#section3">Gender</a></li>
+              <li><a href="#section3">Geo</a></li>
+            </ul><br>
+          </div>
+          <br>
+              
+          <div class="col-sm-9">
+            <div class="container">    
+              <div class="row">
+                <div class="col-sm-3">
+                  <div class="panel panel-primary">
+                    <div class="panel-heading">BLACK FRIDAY DEAL</div>
+                    <div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
+                    <div class="panel-footer">Buy 50 mobiles and get a gift card</div>
+                  </div>
+                </div>
+                <div class="col-sm-3"> 
+                  <div class="panel panel-danger">
+                    <div class="panel-heading">BLACK FRIDAY DEAL</div>
+                    <div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
+                    <div class="panel-footer">Buy 50 mobiles and get a gift card</div>
+                  </div>
+                </div>
+                <div class="col-sm-3"> 
+                  <div class="panel panel-success">
+                    <div class="panel-heading">BLACK FRIDAY DEAL</div>
+                    <div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
+                    <div class="panel-footer">Buy 50 mobiles and get a gift card</div>
+                  </div>
+                </div>
+              </div>
+            </div><br>
+          </div>
+        </div>
+      </div>
+    
+
+    <footer class="container-fluid text-center">
+      <p>Online Store Copyright</p>  
+      <form class="form-inline">Get deals:
+        <input type="email" class="form-control" size="50" placeholder="Email Address">
+        <button type="button" class="btn btn-danger">Sign Up</button>
+      </form>
+    </footer>
+  </body>
+</html>
