@@ -1,2 +1,2 @@
 # notes
-Just some notes, stored on GitHub instead of blog.
+Just some notes collected from individuals and the internet.
