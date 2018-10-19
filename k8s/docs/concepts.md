@@ -56,7 +56,7 @@ managed in Kubernetes, pods represent running processes on nodes in cluster.
 - Networking, as a unique cluster IP address
 - Information about how to run each container, such as the container image version or specific ports to use
 
-<div> <img src="../../asset/pods.svg" width="500"/> </div><br>
+<div> <img src="../../assets/pods.svg" width="500"/> </div><br>
 
 
 
@@ -83,7 +83,7 @@ A Depolyment controller provides declarative updates for Pods and ReplicaSets.
 - The Master automatically handles scheduling the pods across the Nodes in the cluster
 - The Master's automatic scheduling takes into account the available resources on each Node
 
-<div> <img src="../../asset/cluster.svg" width="400"/> </div><br>
+<div> <img src="../../assets/cluster.svg" width="400"/> </div><br>
 
 
 
@@ -96,6 +96,6 @@ Every kubernetes Node runs at least:
 - A container runtime (like Docker, rkt) responsible for pulling the container image from a registry, unpacking the container, and running the application.
 
 
-<div> <img src="../../asset/nodes.svg" width="400"/> </div><br>
+<div> <img src="../../assets/nodes.svg" width="400"/> </div><br>
 
 
