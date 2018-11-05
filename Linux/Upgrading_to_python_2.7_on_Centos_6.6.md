@@ -9,7 +9,7 @@
 	[root@Rosen tmp]# ./configure --prefix=/usr/local
 	[root@Rosen tmp]# make && make altinstall
 	```
-**⚠️Warning：** It is important to use `make altinstall` instead of `make install` otherwise you will end up with two diffrent versions of Python on your filesystem, both named `python`.
+	**⚠️Warning：** It is important to use `make altinstall` instead of `make install` otherwise you will end up with two diffrent versions of Python on your filesystem, both named `python`.
 
 
 - Create a soft link
