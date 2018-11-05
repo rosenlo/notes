@@ -28,7 +28,7 @@ StackStorm有助于你将这些和其他操作模式组合为规则和工作流�
 
 #### StackStorm架构图
 
-<div> <img src="../../assets/st2-architecture.svg" /> </div><br>
+<div> <img src="../../assets/st2-architecture.jpg" /> </div><br>
 
 
 #### StackStorm如何工作：
