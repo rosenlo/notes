@@ -13,6 +13,7 @@
         * [更新harbor.cfg](#更新harbor.cfg)
         * [添加域名解析](#添加域名解析)
         * [配置HTTPS](#配置HTTPS)
+        * [更新docker-compose.cfg](#更新docker-compose.cfg)
     * [安装](#安装)
         * [启动容器](#启动容器)
         * [销毁容器](#销毁容器)

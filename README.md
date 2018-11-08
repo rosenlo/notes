@@ -20,6 +20,8 @@ Available notes:
 - Kubernetes
 	- [Concepts](https://github.com/RosenLo/notes/blob/master/k8s/docs/concepts.md)
 	- [Kubernetes代理使用技巧](https://github.com/RosenLo/notes/blob/master/k8s/docs/k8s_proxy.md)
+- Harbor
+    - [Harbor基础学习](https://github.com/RosenLo/notes/blob/master/harbor/getting_started.md)
 - StackStorm
     - [st2基础学习](https://github.com/RosenLo/notes/blob/master/st2/docs/getting_started.md)
 - ELK
