@@ -1,10 +1,12 @@
 # notes
-Just some notes collected from individuals and the internet.
+Just some learning notes collected from individuals and the internet.
 
 ---
 
 Available notes:
 
+- Network
+    - [Computer Network](https://github.com/RosenLo/notes/blob/master/network/computer_network.md)
 - Operating System
     - 进程通讯
     - 堆栈
@@ -27,5 +29,4 @@ Available notes:
 - ELK
 	- [ElasticSearch集群部署](https://github.com/RosenLo/notes/blob/master/ELK/ElasticSearch/elasticsearch_cluster_deploy.md)
 	- [监控单个节点](https://github.com/RosenLo/notes/blob/master/ELK/ElasticSearch/monitor_individual_nodes.md)
-
 - Arithmetic
