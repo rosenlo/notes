@@ -162,7 +162,7 @@ openssl x509 -req -sha512 -days 3650 \
     -out rosen.me.crt
 ```
 
-- 为Docker配置证书
+- 为Docker配置客户端证书
 
 ```
 openssl x509 -inform PEM -in rosen.me.crt -out rosen.me.cert
@@ -362,8 +362,41 @@ registry             /entrypoint.sh /etc/regist ...   Up (healthy)   5000/tcp
 
 ```
 
-此时可用通过浏览器访问管理页面：https://rosen.me
-使用默认用户名/密码(admin/Harbor12345)
+#### 访问管理页面
+如果一切都ok，此时就可以通过浏览器访问管理页面了：https://rosen.me
+使用默认用户名/密码(admin/Harbor12345)即可登录，不过浏览器会出现证书不信任的情况。
+
+MacOS下可通过以下命令管理证书：
+
+```
+# add
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain ca.crt
+# delete
+sudo security delete-certificate -c "rosen.me"
+```
+
+
+#### Push Image
+在push镜像前需要先登录管理页，创建一个新项目。例如`rosen`。
+
+```
+# 先登录
+docker login rosen.me
+
+# 打Tag
+docker tag redis:4.0 rosen.me/rosen/redis:4.0
+
+# push
+docker push rosen.me/rosen/redis:4.0
+The push refers to repository [rosen.me/rosen/redis]
+dbcc6e4e605c: Pushed
+7dd0e697055f: Pushed
+46bfaddcc6ee: Pushed
+e9a42011bbb5: Pushed
+3d00edfc2170: Pushed
+ba291263b085: Pushed
+4.0: digest: sha256:fc13b47aca9b5b53f625efe91bcd5cc44c637e80a81e5b223d5a98a6eac7ceb2 size: 1571
+```
 
 
 #### 启动容器
@@ -386,4 +419,4 @@ docker-compose -f docker-compose.yml -f docker-compose.notary.yml -f docker-comp
 
 - [Installation and Configuration Guide](https://github.com/goharbor/harbor/blob/master/docs/installation_guide.md)
 - [Configuring Harbor with HTTPS Access](https://github.com/goharbor/harbor/blob/master/docs/configure_https.md)
-
+- [Add a Custom CA Certificates On MacOS](https://docs.docker.com/docker-for-mac/#add-custom-ca-certificates-server-side)
