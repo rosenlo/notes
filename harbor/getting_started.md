@@ -27,11 +27,11 @@
 
 ### Harbor介绍
 
-Harbor是一个开源的可信本地云注册表项目，用于存储，签名和扫描内容。Harbor通过添加用户和常用的功能如（安全性，身份和管理）扩展了Docker官方的Distribution项目。使用注册表更容易构建和运行环境，提高了image传输效率。同时支持多注册表之间的image复制，也提供了更强的安全功能，如（用户管理，访问控制，活动审计）。
+Harbor是一个开源的用于存储和分发Docker镜像的企业级Registry项目。Harbor通过添加一些企业级需要的功能特性如（安全性，身份和管理）扩展了Docker官方的Distribution项目。Harbor提升了用户构建和运行环境传输镜像的效率。同时支持多Registry节点之间的image复制，另外提供了更强的安全功能，如（用户管理，访问控制，活动审计）。
 
 ### Harbor功能
 
-- 本地云注册：同时支持容器镜像和`Helm chart`，`Harbor`作为本地云环境(如：容器运行和编排平台)的注册表。
+- 私有云Registry：同时支持容器镜像和`Helm chart`，`Harbor`作为Registry为私有云环境(如：容器运行和编排平台)提供服务。
 - 基于角色的访问控制：用户和资源库通过项目组合起来，用户可以在同个项目的镜像有不同的权限。
 - 基于策略的镜像复制：镜像可以基于多个过滤器（资源库，标记，标签）策略的在多个注册实例上复制（同步）, `Harbor`在遇到失败的时候自动重试复制。非常适合负载均衡，高可用，多数据中心，混合云场景。
 - 漏洞扫描：`Harbor`定期扫描镜像漏洞并通知用户。
@@ -74,10 +74,10 @@ cd harbor
 
 #### 更新harbor.cfg
 
-如果只是本地测试使用也不需要HTTPS的话只需要修改主机名，其他参数默认即可。
+如果只是本地测试使用也不需要漏洞扫描（需要支持HTTPS）功能，只需要修改主机名，其他参数默认即可。
 
 ```
-hostname = www.rosen.me
+hostname = rosen.me
 ui_url_protocol = https
 secretkey_path = ./data
 ssl_cert = ./data/cert/rosen.me.crt
@@ -85,7 +85,7 @@ ssl_cert_key = ./data/cert/rosen.me.key
 ```
 
 - 必需参数
-    - **hostname** 目标主机名，用来访问UI和注册服务，必须是`IP`地址或是`fully qualified domain name (FQDN)`，例如：`192.168.1.100`或`www.rosen.me`。不要用`localhost`或`127.0.0.1`，因为注册服务需要被外部访问。
+    - **hostname** 目标主机名，用来访问UI和注册服务，必须是`IP`地址或是`fully qualified domain name (FQDN)`，例如：`192.168.1.100`或`rosen.me`。不要用`localhost`或`127.0.0.1`，因为注册服务需要被外部访问。
     - **ui_url_protocol**: （http或https。默认是http）
     - **db_password**
     - **max_job_workers**
@@ -104,9 +104,9 @@ ssl_cert_key = ./data/cert/rosen.me.key
 #### 添加域名解析
 
 ```
-vim /etc/hosts
+sudo vim /etc/hosts
 
-172.16.27.64 www.rosen.me
+172.16.27.64 rosen.me
 ```
 
 #### 配置HTTPS
@@ -151,14 +151,23 @@ subjectAltName = @alt_names
 [alt_names]
 DNS.1=rosen.me
 DNS.2=rosen
-DNS.3=www.rosen.me
 EOF
 ```
 
-- 为Docker配置服务端证书
+```
+openssl x509 -req -sha512 -days 3650 \
+    -extfile v3.ext \
+    -CA ca.crt -CAkey ca.key -CAcreateserial \
+    -in rosen.me.csr \
+    -out rosen.me.crt
+```
+
+- 为Docker配置证书
 
 ```
 openssl x509 -inform PEM -in rosen.me.crt -out rosen.me.cert
+mkdir -p ~/.docker/certs.d/rosen.me
+cp rosen.me.cert rosen.me.key ca.crt ~/.docker/certs.d/rosen.me
 ```
 
 #### 更新docker-compose.cfg
@@ -353,7 +362,8 @@ registry             /entrypoint.sh /etc/regist ...   Up (healthy)   5000/tcp
 
 ```
 
-此时可用通过浏览器访问管理页面：https://www.rosen.me，使用默认用户名/密码(admin/Harbor12345)，仅供第一次访问，登陆成功后需要修改密码不然下次就用不了。
+此时可用通过浏览器访问管理页面：https://rosen.me
+使用默认用户名/密码(admin/Harbor12345)
 
 
 #### 启动容器
@@ -370,9 +380,10 @@ docker-compose -f docker-compose.yml -f docker-compose.notary.yml -f docker-comp
 
 #### 安装故障排除
 - 如果有服务状态不是**UP**状态，查看目录var/log/harbor/对应的日志
-- 如果遇到容器内读写本地配置文件有`permission denied`的情况，直接赋予文件`777`权限。
+- 如果遇到容器内读写本地配置文件有`permission denied`的情况，赋予文件可读权限（644）即可
 
 #### 安装和配置参考
 
 - [Installation and Configuration Guide](https://github.com/goharbor/harbor/blob/master/docs/installation_guide.md)
 - [Configuring Harbor with HTTPS Access](https://github.com/goharbor/harbor/blob/master/docs/configure_https.md)
+
