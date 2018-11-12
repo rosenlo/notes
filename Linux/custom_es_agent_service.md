@@ -8,7 +8,7 @@ systemd有系统和用户区分；系统目录`/user/lib/systemd/system/`、用�
 
 **示例:**
 
->\# vim es_agent.service 
+>\# vim es_agent.service
 
 ```
 [Unit]
@@ -29,7 +29,7 @@ WantedBy=multi-user.target
 ```
 
 ### 简单说明
- 
+
 ```
 [Unit]
 Description: 服务描述
@@ -65,4 +65,6 @@ WantedBy=multi-user.target - 表示该服务所在的target
 ---
 
 **参考：**
->1. <https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/sect-Managing_Services_with_systemd-Unit_Files.html>
+- [官方文档](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/sect-Managing_Services_with_systemd-Unit_Files.html)
+- [Systemd 入门教程：命令篇](http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-commands.html)
+- [Systemd 入门教程：实战篇](http://www.ruanyifeng.com/blog/2016/03/systemd-tutorial-part-two.html)
