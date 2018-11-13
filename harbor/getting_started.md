@@ -44,6 +44,22 @@ Harbor是一个开源的用于存储和分发Docker镜像的企业级Registry项
 - 轻松部署
 
 
+### Harbor架构
+
+<div> <img src="../assets/harbor-architecture.jpg"/> </div><br>
+
+根据架构图可看出Harbor由5个组件组成：
+- **Proxy**：代理转发所有来自浏览器和Docker Client的请求到其他后端服务。
+- **Registry**：负责存储Docker images和处理Docker的`push/pull`命令，每次请求Registry都会从`token service`获得token
+- **Core services**：Harbor核心服务，主要提供了以下服务：
+    - **UI**：图形界面管理images
+    - **Webhook**：更新日志，发起复制等其他功能
+    - **Token**：根据项目的规则，负责给每一次的docker `pull/push`命令提供token
+    - **Database**：存储项目、用户、规则、复制策略和镜像的元数据
+- **Job services**：镜像复制，本地镜像复制（异步）到其他实例
+- **Log collector**：聚集各个组件的日志存在一个地方，实质上是一个`rsyslog`服务
+
+
 ### Harbor总览参考
 
 - https://github.com/goharbor/harbor
