@@ -5,7 +5,6 @@
 * [Harbor总览](#Harbor总览)
     * [Harbor介绍](#Harbor介绍)
     * [Harbor功能](#Harbor功能)
-    * [Harbor总览参考](#Harbor总览参考)
 * [安装和配置](#安装和配置)
     * [环境](#环境)
     * [下载](#下载)
@@ -17,8 +16,8 @@
     * [安装](#安装)
         * [启动容器](#启动容器)
         * [销毁容器](#销毁容器)
-        * [安装故障排除](#安装故障排除)
-        * [安装和配置参考](#安装和配置参考)
+        * [故障排除](#故障排除)
+* [参考](#参考)
 
 ---
 
@@ -59,10 +58,6 @@ Harbor是一个开源的用于存储和分发Docker镜像的企业级Registry项
 - **Job services**：镜像复制，本地镜像复制（异步）到其他实例
 - **Log collector**：聚集各个组件的日志存在一个地方，实质上是一个`rsyslog`服务
 
-
-### Harbor总览参考
-
-- https://github.com/goharbor/harbor
 
 
 ## 安装和配置
@@ -427,12 +422,15 @@ docker-compose -f docker-compose.yml -f docker-compose.notary.yml -f docker-comp
 docker-compose -f docker-compose.yml -f docker-compose.notary.yml -f docker-compose.clair.yml -f docker-compose.chartmuseum.yml down
 ```
 
-#### 安装故障排除
+#### 故障排除
 - 如果有服务状态不是**UP**状态，查看目录var/log/harbor/对应的日志
 - 如果遇到容器内读写本地配置文件有`permission denied`的情况，赋予文件可读权限（644）即可
+- **auth_mode** 在第一次设置后，如果需要修改必须先清除db数据，re-install 才能生效
 
-#### 安装和配置参考
 
+## 参考
+
+- [Harbor仓库](https://github.com/goharbor/harbor)
 - [Installation and Configuration Guide](https://github.com/goharbor/harbor/blob/master/docs/installation_guide.md)
 - [Configuring Harbor with HTTPS Access](https://github.com/goharbor/harbor/blob/master/docs/configure_https.md)
 - [Add a Custom CA Certificates On MacOS](https://docs.docker.com/docker-for-mac/#add-custom-ca-certificates-server-side)
