@@ -1,25 +1,28 @@
 # Harbor
 
----
+<!-- vim-markdown-toc GFM -->
 
-* [Harbor总览](#Harbor总览)
-    * [Harbor介绍](#Harbor介绍)
-    * [Harbor功能](#Harbor功能)
+* [Harbor总览](#harbor总览)
+    * [Harbor介绍](#harbor介绍)
+    * [Harbor功能](#harbor功能)
+    * [Harbor架构](#harbor架构)
 * [安装和配置](#安装和配置)
     * [环境](#环境)
     * [下载](#下载)
     * [配置](#配置)
-        * [更新harbor.cfg](#更新harbor.cfg)
+        * [更新harbor.cfg](#更新harborcfg)
         * [添加域名解析](#添加域名解析)
-        * [配置HTTPS](#配置HTTPS)
-        * [更新docker-compose.cfg](#更新docker-compose.cfg)
+        * [配置HTTPS](#配置https)
+        * [更新docker-compose.cfg](#更新docker-composecfg)
     * [安装](#安装)
+        * [访问管理页面](#访问管理页面)
+        * [Push Image](#push-image)
         * [启动容器](#启动容器)
         * [销毁容器](#销毁容器)
         * [故障排除](#故障排除)
 * [参考](#参考)
 
----
+<!-- vim-markdown-toc -->
 
 
 ## Harbor总览
