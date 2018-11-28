@@ -27,15 +27,18 @@
         * [2.2.1 波特率与比特率的关系](#221-波特率与比特率的关系)
     * [2.3 数字信号的Fourier分析](#23-数字信号的fourier分析)
     * [2.4 最大数据传输率与带宽的关系](#24-最大数据传输率与带宽的关系)
-        * [2.4.1 Nyquist定理](#241-nyquist定理)
+        * [2.4.1 Nyquist定理*](#241-nyquist定理)
         * [2.4.2 Shannon定理](#242-shannon定理)
         * [2.4.3 噪声信道中的传输速率](#243-噪声信道中的传输速率)
     * [2.5 数据传输](#25-数据传输)
         * [2.5.1 数字数据用模拟信号传输](#251-数字数据用模拟信号传输)
-                * [调幅ASK(Amplitude Shift Keying)](#调幅askamplitude-shift-keying)
-                * [调频FSK(Frequency Shift Keying)](#调频fskfrequency-shift-keying)
-                * [调相PSK(Phase Shift Keying) ](#调相pskphase-shift-keying)
+            * [调幅ASK(Amplitude Shift Keying)](#调幅askamplitude-shift-keying)
+            * [调频FSK(Frequency Shift Keying)](#调频fskfrequency-shift-keying)
+            * [调相PSK(Phase Shift Keying) ](#调相pskphase-shift-keying)
+            * [调制举例](#调制举例)
         * [2.5.2 数字数据用数字信号传输](#252-数字数据用数字信号传输)
+            * [不归零编码](#不归零编码)
+            * [曼切斯特编码*](#曼切斯特编码)
         * [2.5.3 模拟数据在数字信道上传输](#253-模拟数据在数字信道上传输)
         * [2.5.4 数字数据传输的专用术语](#254-数字数据传输的专用术语)
     * [2.6 物理层标准例子](#26-物理层标准例子)
@@ -236,30 +239,30 @@ TCP/IP协议族可以为各式各样的应用服务提供服务（everything ove
 ### 2.5.1 数字数据用模拟信号传输
 将数字数据调制成模拟信号进行传输。通常有三种方式：
 
-##### 调幅ASK(Amplitude Shift Keying)
+#### 调幅ASK(Amplitude Shift Keying)
 用载波的两个不同的振幅来表示两个二进制值。如用无信号表示0，有信号表示1。
 
 <div> <img src="../assets/network/2018-11-27_22-12-40.jpg" /> </div><br>
 
-##### 调频FSK(Frequency Shift Keying)
+#### 调频FSK(Frequency Shift Keying)
 用载波附近的两个不同的频率来表示两个二进制值。如用信号频率为2f表示0，信号频率为f表示1。
 <div> <img src="../assets/network/2018-11-27_22-15-15.jpg" /> </div><br>
 
-##### 调相PSK(Phase Shift Keying) 
+#### 调相PSK(Phase Shift Keying) 
 用载波的相位移动来表示二进制值。如用信号相位角为0表示0，相位角为π表示1。
 <div> <img src="../assets/network/2018-11-27_22-16-17.jpg" /> </div><br>
 
-##### 调制举例
+#### 调制举例
 <div> <img src="../assets/network/2018-11-27_22-23-40.jpg" /> </div><br>
 
 ### 2.5.2 数字数据用数字信号传输
 最普通的方法是用两个不同的电压值来表示两个二进制值0和1。
 常用的数字信号编码有：
 
-##### 不归零编码
+#### 不归零编码
 正电平表示1，0电平表示0，并且在表示完一个码元后，电压毋需回到0。缺点是存在发送方和接收方的同步问题。
 
-##### 曼切斯特编码*
+#### 曼切斯特编码*
 - bit中间有信号低-高跳变为0
 - bit中间有信号高-低跳变为1
 
