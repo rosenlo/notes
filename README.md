@@ -19,6 +19,8 @@ Available notes:
 - Python
 	- [谈谈Python的生成器](https://github.com/RosenLo/notes/blob/master/python/docs/talk_yield.md)
     - python标准库学习
+- Docker
+    - [Docker基础学习](https://github.com/RosenLo/notes/blob/master/docker/getting_started.md)
 - Kubernetes
 	- [Concepts](https://github.com/RosenLo/notes/blob/master/k8s/docs/concepts.md)
 	- [Kubernetes代理使用技巧](https://github.com/RosenLo/notes/blob/master/k8s/docs/k8s_proxy.md)
