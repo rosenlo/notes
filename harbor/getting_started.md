@@ -19,7 +19,7 @@
         * [Push Image](#push-image)
         * [启动容器](#启动容器)
         * [销毁容器](#销毁容器)
-        * [故障排除](#故障排除)
+* [故障排除](#故障排除)
 * [参考](#参考)
 
 <!-- vim-markdown-toc -->
@@ -425,11 +425,41 @@ docker-compose -f docker-compose.yml -f docker-compose.notary.yml -f docker-comp
 docker-compose -f docker-compose.yml -f docker-compose.notary.yml -f docker-compose.clair.yml -f docker-compose.chartmuseum.yml down
 ```
 
-#### 故障排除
-- 如果有服务状态不是**UP**状态，查看目录var/log/harbor/对应的日志
-- 如果遇到容器内读写本地配置文件有`permission denied`的情况，赋予文件可读权限（644）即可
-- **auth_mode** 在第一次设置后，如果需要修改必须先清除db数据，re-install 才能生效
+## 故障排除
 
+1. 如果有服务状态不是**UP**状态，查看目录var/log/harbor/对应的日志
+2. 如果遇到容器内读写本地配置文件有`permission denied`的情况，赋予文件可读权限（644）即可
+3. **auth_mode** 在第一次设置后，如果需要修改必须先清除db数据，re-install 才能生效
+4. ui[24004]: 2018-11-28T07:44:17Z [ERROR] [repository.go:488] failed to get signatures of project/repo: trust server rejected operation.
+
+    多节点部署Harbor的时候`private_key.pem`文件要一致，否则可能出现请求在一台成功到另外一台验证不通过。因为执行`./prepare`脚本默认会重新生成registry用来生成token的密钥文件，而`MakeToken`方法会根据本地的`private_key.pem`文件生成token，所以可以选择`./prepare --ha`模式部署，也可以将一台生成的密钥文件拷贝到其他节点上去。
+
+    ```go
+    # authutils.go
+    // MakeToken makes a valid jwt token based on parms.
+    func MakeToken(username, service string, access []*token.ResourceActions) (*models.Token, error) {
+        pk, err := libtrust.LoadKeyFile(privateKey)
+        if err != nil {
+            return nil, err
+        }
+        expiration, err := config.TokenExpiration()
+        if err != nil {
+            return nil, err
+        }
+
+        tk, expiresIn, issuedAt, err := makeTokenCore(issuer, username, service, expiration, access, pk)
+        if err != nil {
+            return nil, err
+        }
+        rs := fmt.Sprintf("%s.%s", tk.Raw, base64UrlEncode(tk.Signature))
+        return &models.Token{
+            Token:     rs,
+            ExpiresIn: expiresIn,
+            IssuedAt:  issuedAt.Format(time.RFC3339),
+        }, nil
+    }
+
+    ```
 
 ## 参考
 
