@@ -1,4 +1,3 @@
-
 <!-- vim-markdown-toc GFM -->
 
 * [Docker](#docker)
@@ -7,18 +6,23 @@
             * [Host Networking](#host-networking)
 * [Docker Compose](#docker-compose)
     * [Compose File Configuration Reference](#compose-file-configuration-reference)
+        * [links](#links)
+        * [networks](#networks)
+            * [aliases](#aliases)
+        * [depends_on](#depends_on)
+        * [build](#build)
+            * [extra_hosts](#extra_hosts)
         * [Network Configuration Reference](#network-configuration-reference)
             * [driver](#driver)
             * [external](#external)
             * [internal](#internal)
             * [name](#name)
+    * [Extend Services In Compose](#extend-services-in-compose)
+        * [Multiple Compose files](#multiple-compose-files)
+        * [Extending services](#extending-services)
+* [Reference](#reference)
 
 <!-- vim-markdown-toc -->
-
-
-
-
-
 
 
 ## Docker
@@ -50,6 +54,98 @@
 默认文件名是`docker-compose.yml`，可以定义多个`Compose file` 通过`docker-compose -f xxx.yml` 指定。
 
 以下配置皆为 **version 2+**
+
+#### links
+连接两个容器中的服务，语法（service:alias）或直接service name
+
+容器就可以通过service name去访问其他容器了。前提容器之间处于相通的网络。
+
+官方推荐使用[networks](#networks)
+
+```yaml
+web:
+  links:
+   - "db"
+   - "db:database"
+   - "redis"
+```
+
+#### networks
+用于多个容器加入到一个网络
+
+```yaml
+services:
+  some-service:
+    networks:
+     - some-network
+     - other-network
+```
+
+##### aliases
+如果有容器名冲突，可以用不同的别名(alias)代替。
+
+一个服务可以在不同网络上有不同别名。
+
+```yaml
+version: '2'
+
+services:
+  web:
+    build: ./web
+    networks:
+      - new
+
+  worker:
+    build: ./worker
+    networks:
+      - legacy
+
+  db:
+    image: mysql
+    networks:
+      new:
+        aliases:
+          - database
+      legacy:
+        aliases:
+          - mysql
+
+networks:
+  new:
+  legacy:
+```
+
+#### depends_on
+- `docker-compose up`启动多个服务时，会先创建启动依赖的服务然后再启动
+- `docker-compose up SERVICE`会自动拉起`SERVICE`依赖的服务。在下面的例子中，`docker-compose up web`会先创建启动`db`和`redis`然后再创建启动`web`
+
+例：
+```yaml
+version: '2'
+services:
+  web:
+    build: .
+    depends_on:
+      - db
+      - redis
+  redis:
+    image: redis
+  db:
+    image: postgres
+```
+
+**Note**: `depends_on`不会等`db`和`redis`成`ready`状态才去启动`web`，在`started`状态时就会启动，如果需要等依赖服务`ready`，看这个[解决方案](https://docs.docker.com/compose/startup-order/)
+
+#### build
+
+##### extra_hosts
+在build时添加hostname映射，存放于容器中的`/etc/hosts`文件。也可以在`docker --add-host`指定。
+
+```
+extra_hosts:
+ - "somehost:162.242.195.82"
+ - "otherhost:50.31.209.229"
+```
 
 #### Network Configuration Reference
 
@@ -86,3 +182,149 @@ networks:
     name: my-app-net
 ```
 
+### Extend Services In Compose
+
+Compose支持两种方式复用公共配置：
+- 多个Compose文件
+- 用`extends`字段扩展
+
+#### Multiple Compose files
+主要用于区分不同的环境变量如：dev、test、qa、prod等环境或不同的workflow。
+
+默认Compose会读两个文件：`docker-compose.yml`和`docker-compose.override.yml`。一般`docker-compose.yml`包含了基础配置，而`override`文件看名字就知道是用于覆盖基础配置或整个service。
+
+多个文件用`-f`指定，Compose会根据指定文件的顺序合并最终的配置，从左至右。需要注意的是指定所有的`override`文件是基于`docker-compose.yml`的相对路径。
+
+看一个官方例子：不同环境
+
+**docker-compose.yml**
+
+```yaml
+web:
+  image: example/my_web_app:latest
+  links:
+    - db
+    - cache
+
+db:
+  image: postgres:latest
+
+cache:
+  image: redis:latest
+```
+
+**docker-compose.override.yml**
+
+```yaml
+web:
+  build: .
+  volumes:
+    - '.:/code'
+  ports:
+    - 8883:80
+  environment:
+    DEBUG: 'true'
+
+db:
+  command: '-d'
+  ports:
+    - 5432:5432
+
+cache:
+  ports:
+    - 6379:6379
+```
+
+当运行`docker-compose up`时会自动覆盖
+
+再创建一个生产环境override文件。一般可能储存在不同`git repo`和项目代码分离开
+
+**docker-compose.prod.yml**
+
+```yaml
+web:
+  ports:
+    - 80:80
+  environment:
+    PRODUCTION: 'true'
+
+cache:
+  environment:
+    TTL: '500'
+```
+
+生产环境部署Compose files用以下命令：
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+如果新增了一个admin服务，也依赖基础Compose文件也可以通过以下命令运行：
+
+**docker-compose.admin.yml**
+
+```yaml
+dbadmin:
+  build: database_admin/
+  links:
+    - db
+```
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.admin.yml \
+    run dbadmin
+```
+
+#### Extending services
+
+**Note**: 目前`extends`关键字最高支持`version 2.1`，还不支持`version 3.x`  [detail](https://github.com/moby/moby/issues/31101)
+
+相比[Multiple Compose files](#multiple-compose-files)，不仅可以在不同Compose files复用公共配置，还可以在不同项目中复用。
+
+`links`、`volumes_from`和`depends_on`永远不要用`extends`去共用。避免隐式依赖造成未知异常。
+
+看个官方例子加深理解一下：
+
+可以看出是基于**service**覆盖，在web service下指定`common-services.yml`文件的webapp service
+
+**docker-compose.yml**
+
+```yaml
+web:
+  extends:
+    file: common-services.yml
+    service: webapp
+```
+
+**common-services.yml**
+
+```yaml
+webapp:
+  build: .
+  ports:
+    - "8000:8000"
+  volumes:
+    - "/data"
+```
+
+还可以在同一个文件基于存在的service重新定义一个新的service
+
+**docker-compose.yml**
+
+```yaml
+web:
+  extends:
+    file: common-services.yml
+    service: webapp
+  environment:
+    - DEBUG=1
+  cpu_shares: 5
+
+important_web:
+  extends: web
+  cpu_shares: 10
+````
+
+## Reference
+- [Docker Docs](https://docs.docker.com/)
+- [Docker Compose](https://docs.docker.com/compose/overview/)
