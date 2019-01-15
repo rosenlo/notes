@@ -1,4 +1,4 @@
-# StackStorm
+# StackStorm Basic
 
 ---
 <!-- vim-markdown-toc GFM -->

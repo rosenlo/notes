@@ -1,9 +1,23 @@
-# StackStorm
+# StackStorm Advanced
 
 ---
 <!-- vim-markdown-toc GFM -->
 
 * [StackStorm Component](#stackstorm-component)
+    * [Actions](#actions)
+        * [Action Runners](#action-runners)
+            * [Available Runners](#available-runners)
+        * [Writing Custom Actions](#writing-custom-actions)
+            * [Action Metadata](#action-metadata)
+            * [Parameters in Actions](#parameters-in-actions)
+            * [Action Registration](#action-registration)
+        * [Overriding Runner Parameters](#overriding-runner-parameters)
+        * [Environment Variables Available to Actions](#environment-variables-available-to-actions)
+        * [Converting Existing Script to Actions](#converting-existing-script-to-actions)
+        * [Writing Custom Python Actions](#writing-custom-python-actions)
+            * [Configuration File](#configuration-file)
+            * [Logging](#logging)
+            * [Action Service](#action-service)
     * [Sensors](#sensors)
     * [Triggers](#triggers)
     * [Rules](#rules)
@@ -11,19 +25,411 @@
     * [Timers](#timers)
     * [Workflows](#workflows)
         * [Orquesta](#orquesta)
-            * [Orquesta 工作模式](#orquesta-工作模式)
+            * [Orquesta Role](#orquesta-role)
             * [Orquesta Model Definition](#orquesta-model-definition)
             * [Expressions and Context](#expressions-and-context)
             * [YAQL](#yaql)
             * [Jinja](#jinja)
             * [Workflow Operations](#workflow-operations)
-* [参考](#参考)
+    * [Pack Configuration](#pack-configuration)
+* [Reference](#reference)
 
 <!-- vim-markdown-toc -->
 ---
 
 
 ## StackStorm Component
+
+### Actions
+
+- action 是可以任意执行的代码片段，可以用各种语言编写
+- 当被规则条件所匹配，通过 tigger 触发
+- 多个 action 可以组成 workflow
+- 也可以直接通过 CLI, API, UI 执行
+
+#### Action Runners
+
+- action runner 是一个用户执行 action 的运行环境
+- StackStorm 预装了很多 action runner， 为了让用户专注于 action
+  的实现，而不是底层运行环境
+
+
+##### Available Runners
+
+1. `local-shell-cmd` - 在 StackStorm 本机运行 Linux 命令
+2. `local-shell-script` - 在 StackStorm 本机运行 script
+3. `remote-shell-cmd` - 在一个或多个机器上运行 Linux 命令
+4. `remote-shell-script` - 在一个或多个机器上运行 script
+5. `python-script` - 这是一个 Python runner. 需要写一个 Python classes 继承StackStorm Base classes 实现 `run()` 方法. 在 StackStorm 本机运行. `run()` 方法返回一个数组，包含成功状态和结果对象，更多信息参考 [Action Runners](#Action Runners)
+6. `http-request` - HTTP client，可以发送 HTTP 请求
+7. `action-chain` - 内置 workflow runner, 支持执行一些简单的 workflow。更多信息参考 [ActionChain](https://docs.stackstorm.com/latest/actionchain.html)
+8. `mistral-v2` - OpenStack 内置的 workflow，支持复杂的 workflow。更多信息参考 [Mistral](https://docs.stackstorm.com/latest/mistral.html)
+9. `cloudslang` - 也是一个workflow runner， 在 v2.9 将被移除
+10. `inquirer - This runner provides the core logic of the Inquiries feature. 注意: 这个 runner 为了`core.ask` action 而实现的, 在其他 case 不应该引用
+
+#### Writing Custom Actions
+
+- 一个 YAML 元数据文件，包含 action, input
+- 一个实现了 action 逻辑的脚本文件
+
+action 脚本可以用任意语言实现，只要符合以下规则：
+
+- 脚本成功时退出码为 `0`，失败时非 `0` （例如：1）
+- 所有日志信息需要以标准错误输出，即 `stderr`
+
+##### Action Metadata
+
+- `name` - string
+- `runner_type` - string, action 的 runner 类型
+- `enabled` - bool
+- `entry_point` - string, action 脚本的相对路径
+- `parameters` - 字典结构，metadata 结构遵循 JSON Schema，如果 metadata 提供，input args 将会校验，否则跳过
+
+    - `parameter` - 参数名
+        - `type` - string, 参数类型
+        - `description` - string, 参数描述
+        - `required` - bool，是否必须
+        - `position` - int, 相对位置
+        - `default` - string, 默认值
+        - `secret` - bool, 如果为 ture ，这个参数的值在 StackStorm 服务的 log
+          中将被屏蔽
+        - `immutable` - bool, 定义这个参数的默认值是否可以被覆盖
+
+- `tags` - list, 一个带有标签的数组结构，用来提供补充信息
+
+For example：
+
+这是个 python runner(python-script) 。在 `send_sms.py` 文件中实现了 `run`
+方法，接受三个参数(`from_number`, `to_number`, `body`)，它和 metadata 文件处在同一个位置。
+
+```yaml
+---
+name: "send_sms"
+runner_type: "python-script"
+description: "This sends an SMS using twilio."
+enabled: true
+entry_point: "send_sms.py"
+parameters:
+    from_number:
+        type: "string"
+        description: "Your twilio 'from' number in E.164 format. Example +14151234567."
+        required: true
+        position: 0
+        default: "{{config_context.from_number}}"
+    to_number:
+        type: "string"
+        description: "Recipient number in E.164 format. Example +14151234567."
+        required: true
+        position: 1
+        secret: true
+    body:
+        type: "string"
+        description: "Body of the message."
+        required: true
+        position: 2
+        default: "Hello {% if system.user %} {{ st2kv.system.user }} {% else %} dude {% endif %}!"
+```
+
+##### Parameters in Actions
+
+- 模板文件中通过 `st2kv.system` 访问 parameters
+- 在执行中通过 `action_context` 访问 paramaters
+- 还可以通过 `config_context` 访问 [pack configuration](#pack-configuration)
+- 在ActionChains 和 [Workflow](#workflow) 中，每一个 task 可以访问父
+  `execution_id` 例如：
+
+    ```yaml
+    ...
+    -
+    name: "c2"
+    ref: "core.local"
+    parameters:
+        cmd: "echo \"c2: parent exec is {{action_context.parent.execution_id}}.\""
+    on-success: "c3"
+    on-failure: "c4"
+    ...
+    ```
+
+##### Action Registration
+
+- 放在对应目录`/opt/stackstorm/packs/${pack_name}/`
+- registry `st2 action create my_action_metadata.yaml`
+- reload `st2ctl reload --register-actions`
+
+
+#### Overriding Runner Parameters
+
+Runner 的参数可以被覆盖，在一些场景如：需要自定义和简化操作
+
+For example：
+
+下面的 `linux.rsync` action cmd 参数被覆盖了，还传入了其他参数变量
+
+
+```yaml
+---
+    name: 'rsync'
+    runner_type: 'remote-shell-cmd'
+    description: 'Copy file(s) from one place to another w/ rsync'
+    enabled: true
+    entry_point: ''
+    parameters:
+        source:
+            type: 'string'
+            description: 'List of files/directories to to be copied'
+            required: true
+        dest_server:
+            type: 'string'
+            description: "Destination server for rsync'd files"
+            required: true
+        destination:
+            type: 'string'
+            description: 'Destination of files/directories on target server'
+            required: true
+        cmd:
+            immutable: true
+            default: 'rsync {{args}} {{source}} {{dest_server}}:{{destination}}'
+        connect_timeout:
+            type: 'integer'
+            description: 'SSH connect timeout in seconds'
+            default: 30
+        args:
+            description: 'Command line arguments passed to rysnc'
+            default: '-avz -e "ssh -o ConnectTimeout={{connect_timeout}}"'
+```
+
+不是所有的 runner 参数都可以被覆盖，以下是可以覆盖的参数：
+
+- default
+- description
+- enum
+- immutable
+- required
+
+#### Environment Variables Available to Actions
+
+默认，`local`, `remote`, `python_runner` 可以使用以下 env 变量：
+
+- `ST2_ACTION_PACK_NAME` - 现在的 PACK 名
+- `ST2_ACTION_EXECUTION_ID` - 现在的 Execution ID
+- `ST2_ACTION_API_URL` - 完整的API URL
+- `ST2_ACTION_AUTH_TOKEN` - 在 running 中可用的认证 TOKEN，当 tasks 完成时销毁
+
+For example:
+
+```bash
+#!/usr/bin/env bash
+
+# Retrieve a list of actions by hitting the API using cURL and the information provided
+# via environment variables
+
+RESULT=$(curl -H "X-Auth-Token: ${ST2_ACTION_AUTH_TOKEN}" ${ST2_ACTION_API_URL}/actions)
+echo ${RESULT}
+```
+
+#### Converting Existing Script to Actions
+
+**Note: 如果没有参数可以跳过这步**
+
+如果你已编写独立的程序或脚本，不限语言，可以通过下面的方法转换为 action
+，非常简单。
+
+1. 确保脚本符合约定
+确保脚本带有状态码退出，成功以`0`状态码，失败以非 `0` 状态码， 如 `1`
+
+2. 创建 metadata 文件参考 [Action Metadata](#action-metadata)
+
+3. 更新脚本中的参数解析
+
+
+- `named` - 参数不是位置参数
+- `positional` - 位置参数
+
+命名参数通过以下格式传递：
+
+```
+script.sh --param1=value --param2=value --param3=value
+```
+
+默认情况下，参数以两个破折号开始 `--` ，如果你想用一个破折号，可以用 `kwarg_op`
+在 metadata 中定义，参考下面示例：
+
+```yaml
+---
+name: "my_script"
+runner_type: "remote-shell-script"
+description: "Script which prints arguments to stdout."
+enabled: true
+entry_point: "script.sh"
+parameters:
+    key1:
+        type: "string"
+        required: true
+    key2:
+        type: "string"
+        required: true
+    key3:
+        type: "string"
+        required: true
+    kwarg_op:
+        type: "string"
+        immutable: true
+        default: "-"
+```
+
+```
+script.sh -key1=value1 -key2=value2 -key3=value3
+```
+
+位置参数通过以下格式传递：
+
+```
+script.sh value2 value1 value3
+```
+
+如果只用位置参数，只需要在 metadata 文件中声明 parameters - `position`
+属性，序列化基于以下规则：
+
+- `string`, `integer`, `float` - 序列化为 string
+- `boolean` - 序列化为 string 1 (true) or 0 (false)
+- `array` - 序列化为逗号分隔的string (e.g. `foo,bar,baz`)
+- `object` - 序列化为 JSON
+
+For exmaple:
+
+```yaml
+---
+name: "my_script"
+runner_type: "remote-shell-script"
+description: "Script which prints arguments to stdout."
+enabled: true
+entry_point: "script.sh"
+parameters:
+    key1:
+        type: "string"
+        required: true
+        position: 0
+    key2:
+        type: "string"
+        required: false
+        position: 1
+    key3:
+        type: "string"
+        required: true
+        position: 3
+```
+
+```
+script.sh value1 value2 value3
+```
+
+如果第二个位置参数是可选的，可以传一个空字符
+
+```
+script.sh value1 "" value3
+```
+
+
+#### Writing Custom Python Actions
+
+python action 其实是一个继承 `st2common.runners.base_action.Action`
+并重写 `run` 方法的模块。
+
+看一个最小形式的示例：
+
+Metadata 文件(`my_echo_action.yaml`):
+
+```yaml
+---
+name: "echo_action"
+runner_type: "python-script"
+description: "Print message to standard output."
+enabled: true
+entry_point: "my_echo_action.py"
+parameters:
+    message:
+        type: "string"
+        description: "Message to print."
+        required: true
+        position: 0
+```
+
+Action 文件(`my_echo_action.py`):
+
+```python
+import sys
+
+from st2common.runners.base_action import Action
+
+class MyEchoAction(Action):
+    def run(self, message):
+        print(message)
+
+        if message == 'working':
+            return (True, message)
+        return (False, message)
+```
+
+return 有两种方式：
+
+- 如果正常结束没有引发异常，将被视为成功，返回的对象可以是任意类型
+- 返回一个元组，指定状态和返回的对象
+
+For exmaple:
+
+- `return False` 表示执行状态成功，result 对象是`False`
+- `return (False, "Failed!")` 表示执行状态失败，result 对象是 `"Failed!"`
+
+
+##### Configuration File
+
+用于存放静态配置，文件命名规范：`<pack_name>.yaml`
+
+更多信息参考 [Pack Configuration](#pack-configuration)
+
+##### Logging
+
+这个 logger 是标准 python logger 来自 `logging`模块
+
+For example：
+
+```python
+def run(self):
+    ...
+    success = call_some_method()
+
+    if success:
+        self.logger.info('Action successfully completed')
+    else:
+        self.logger.error('Action failed...')
+```
+
+##### Action Service
+
+类似于 sensors， `action_service`
+提供了一个全局（整个 workflow ）对象，可以用来在不同 task 之间做数据传递等等
+
+For exmaple:
+
+```python
+def run(self):
+  data = {'somedata': 'foobar'}
+
+  # Add a value to the datastore
+  self.action_service.set_value(name='cache', value=json.dumps(data))
+
+  # Retrieve a value
+  value = self.action_service.get_value('cache')
+  retrieved_data = json.loads(value)
+
+  # Retrieve an encrypted value
+  value = self.action_service.get_value('ma_password', decrypt=True)
+  retrieved_data = json.loads(value)
+
+  # Delete a value
+  self.action_service.delete_value('cache')
+```
+
 
 ### Sensors
 
@@ -98,7 +504,7 @@ graph based wrkflow engine designed，Orquesta 具有以下特点：
 - 工作流追溯
 
 
-##### Orquesta 工作模式
+##### Orquesta Role
 
 - conductor
     - 指导 workflow 走向
@@ -160,7 +566,7 @@ noop	|No operation or do not execute anything else.
 fail	|Fails the workflow execution.
 
 
-- Example
+- For example
 
 ```yaml
 version: 1.0
@@ -310,7 +716,7 @@ output:
 
     有并行分支执行时，上下文作用域在每个分支，并在有`join`时合并。如同一个变量，后写入的将会覆盖前值。
 
-    Example:
+    For example:
 
     在下面的例子中，当 `task1` 完成，写入 `x=123` 到上下文管理器， `task2` 延迟 3 秒后覆盖写入 `x=789`
 
@@ -492,7 +898,8 @@ Jinja 表达式：`{{ Jinja expression }}`, 代码块：`{% %}`
     - 相当于重新执行一遍 Workflow， 未来将支持 Re-run 特定 task
 
 
-## 参考
+### Pack Configuration
+
+## Reference
 
 - [StackStorm Doc](https://docs.stackstorm.com/latest/index.html)
-- [Install on Docker](https://docs.stackstorm.com/install/docker.html)
