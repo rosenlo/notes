@@ -28,8 +28,8 @@ Available notes:
 - Harbor
     - [Harbor 基础学习](https://github.com/RosenLo/notes/blob/master/harbor/getting_started.md)
 - StackStorm
-    - [st2 基础学习](https://github.com/RosenLo/notes/blob/master/st2/getting_started.md)
-    - [st2 进阶学习](https://github.com/RosenLo/notes/blob/master/st2/advanced.md)
+    - [st2 基础学习](https://github.com/RosenLo/notes/blob/master/stackstorm/getting_started.md)
+    - [st2 进阶学习](https://github.com/RosenLo/notes/blob/master/stackstorm/advanced.md)
 - ELK
 	- [ElasticSearch 集群部署](https://github.com/RosenLo/notes/blob/master/ELK/ElasticSearch/elasticsearch_cluster_deploy.md)
 	- [监控单个节点](https://github.com/RosenLo/notes/blob/master/ELK/ElasticSearch/monitor_individual_nodes.md)
