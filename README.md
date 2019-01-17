@@ -23,8 +23,9 @@ Available notes:
 - Docker
     - [Docker 基础学习](https://github.com/RosenLo/notes/blob/master/docker/getting_started.md)
 - Kubernetes
-	- [Concepts](https://github.com/RosenLo/notes/blob/master/k8s/docs/concepts.md)
-	- [Kubernetes 代理使用技巧](https://github.com/RosenLo/notes/blob/master/k8s/docs/k8s_proxy.md)
+	- [Concepts](https://github.com/RosenLo/notes/blob/master/k8s/concepts.md)
+	- [Kubernetes 代理使用技巧](https://github.com/RosenLo/notes/blob/master/k8s/k8s_proxy.md)
+    - [使用 kubeadm 创建 Kubernetes 集群](https://github.com/RosenLo/notes/blob/master/k8s/create_highly_available_clusters_with_kubeadm.md)
 - Harbor
     - [Harbor 基础学习](https://github.com/RosenLo/notes/blob/master/harbor/getting_started.md)
 - StackStorm
