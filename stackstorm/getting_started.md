@@ -36,7 +36,7 @@ StackStorm 有助于你将这些和其他操作模式组合为规则和工作流
 
 ### StackStorm 架构图
 
-<div> <img src="../../assets/st2-architecture.jpg" /> </div><br>
+<div> <img src="../assets/st2-architecture.jpg" /> </div><br>
 
 
 ### StackStorm 如何工作：

@@ -754,7 +754,7 @@ output:
 ##### YAQL
 
 YAQL(Yet Another Query Language) 是 OpenStack
-下的一个项目，用于复杂的数据查询和传输，在 Workflow 中定义 YAQL 表达式：<% YAQL expression %>
+下的一个项目，用于复杂的数据查询和传输，在 Workflow 中定义 YAQL 表达式：`<% YAQL expression %>`
 
 - Dictionaries
 
