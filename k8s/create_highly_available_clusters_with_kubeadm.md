@@ -3,14 +3,15 @@
 * [使用 Kubeadm 安装 Kubernetes 集群记录](#使用-kubeadm-安装-kubernetes-集群记录)
     * [Environment](#environment)
     * [Prepaering](#prepaering)
-    * [Installing kubeadm](#installing-kubeadm)
+    * [Installing Kubeadm](#installing-kubeadm)
         * [Installing Docker](#installing-docker)
-        * [Installing kubeadm, kubelet and kubectl](#installing-kubeadm-kubelet-and-kubectl)
+        * [Installing Kubeadm, kubelet and kubectl](#installing-kubeadm-kubelet-and-kubectl)
+        * [配置 Kubeadm 所需用到的镜像](#配置-kubeadm-所需用到的镜像)
     * [Stacked control plane and etcd nodes](#stacked-control-plane-and-etcd-nodes)
         * [Initialization](#initialization)
             * [Installing Pod Network](#installing-pod-network)
             * [Configure SSH](#configure-ssh)
-            * [Copy Certificate To Other Control plane](#copy-certificate-to-other-control-plane)
+            * [Copy Certificate To Other Control Plane](#copy-certificate-to-other-control-plane)
         * [节点加入集群](#节点加入集群)
         * [查看各组件状态](#查看各组件状态)
         * [Reset](#reset)
@@ -23,18 +24,30 @@
 
 ## Environment
 
-- CentOS 7.2.1511
+- CentOS: 7.2.1511
+- docker: ce-18.06.0.ce
+- kube-apiserver:v1.13.2
+- kube-controller-manager:v1.13.2
+- kube-scheduler:v1.13.2
+- kube-proxy:v1.13.2
+- pause:3.1
+- etcd:3.2.24
+- coredns:1.2.6
 
 ## Prepaering
 
-Master  |   ip  |
-node1
-node2
+主机：
+
+role    | ip        | hostname
+--------|-----------|---------
+master  | 10.10.0.1 | k8s10-001
+node1   | 10.9.0.1  | k8s09-001
+node2   | 10.9.0.2  | k8s09-002
 
 以下所有操作都是以`root` 用户执行
 
 
-## Installing kubeadm
+## Installing Kubeadm
 
 ### Installing Docker
 
@@ -57,7 +70,7 @@ yum install docker-ce-18.06.0.ce
 ```
 
 
-### Installing kubeadm, kubelet and kubectl
+### Installing Kubeadm, kubelet and kubectl
 
 因为墙内的原因无法选择官方 repo 源安装，这里使用 aliyun 提供的 repo
 
@@ -106,6 +119,25 @@ yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
 
 systemctl enable kubelet && systemctl start kubelet
 ```
+
+### 配置 Kubeadm 所需用到的镜像
+
+因为测试的机器无法访问官方的镜像库，所以我本地下载并上传到了 Docker Hub 仓库
+
+用下面的脚本获取 Docker Hub 镜像
+
+```bash
+#!/bin/env bash
+
+images=(kube-apiserver:v1.13.0 kube-controller-manager:v1.13.0 kube-scheduler:v1.13.0 pause:3.1 etcd:3.2.24 coredns:1.2.6 kube-proxy:v1.13.0 kubernetes-dashboard-amd64:v1.10.1)
+for imageName in ${images[@]}; do
+	echo "pulling $imageName"
+	docker pull rosenpy/$imageName
+	docker tag rosenpy/$imageName k8s.gcr.io/$imageName
+	docker rmi rosenpy/$imageName
+done
+```
+
 
 ## Stacked control plane and etcd nodes
 
@@ -236,7 +268,7 @@ for host in ${CONTROL_PLANE_IPS}; do
 done
 ```
 
-#### Copy Certificate To Other Control plane
+#### Copy Certificate To Other Control Plane
 
 在 master 上执行下面的 shell 脚本
 
