@@ -244,9 +244,30 @@ etcd-0               Healthy   {"health": "true"}
 #### Installing Pod Network
 
 ```bash
+mkdir -p /etc/cni/net.d/
+
+cat <<EOF> /etc/cni/net.d/10-flannel.conf
+{
+  "name": "cbr0",
+  "type": "flannel",
+  "delegate": {
+    "isDefaultGateway": true
+  }
+}
+EOF
+
+mkdir /run/flannel/ -p
+
+cat <<EOF> /run/flannel/subnet.env
+FLANNEL_NETWORK=10.244.0.0/16
+FLANNEL_SUBNET=10.244.1.0/24
+FLANNEL_MTU=1450
+FLANNEL_IPMASQ=true
+EOF
+
 wget https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 
-kubectl apply -f  kube-flannel.yml
+kubectl create -f  kube-flannel.yml
 ```
 
 
