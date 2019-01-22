@@ -350,6 +350,12 @@ ip link delete cni0
 ifconfig flannel.1 down
 ip link delete flannel.1
 rm -rf /var/lib/cni/
+
+# External etcd cleanup
+# `kubeadm reset` will not delete any etcd data if external is used.
+# This mean that if you run `kebeadm init` again using the sam etcd endpoints,
+# you will see state from previous clusters.
+etcdctl del "" --prefix
 ```
 
 ### Troubleshooting
