@@ -40,9 +40,9 @@
 
 role    | ip        | hostname
 --------|-----------|---------
-master  | 10.10.0.1 | k8s10-001
-node1   | 10.9.0.1  | k8s09-001
-node2   | 10.9.0.2  | k8s09-002
+master  | 10.10.0.1 | k8s-mgmgt10-001
+node1   | 10.9.0.1  | k8s-node09-001
+node2   | 10.9.0.2  | k8s-node09-002
 
 以下所有操作都是以`root` 用户执行
 
@@ -67,6 +67,12 @@ yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce
 
 ```bash
 yum install docker-ce-18.06.0.ce
+```
+
+- 启动
+
+```bash
+systemctl enable docker && systemctl start docker
 ```
 
 

@@ -20,6 +20,8 @@
     * [Extend Services In Compose](#extend-services-in-compose)
         * [Multiple Compose files](#multiple-compose-files)
         * [Extending services](#extending-services)
+    * [Volume Plugin](#volume-plugin)
+        * [GlusterFS Volume Plugin](#glusterfs-volume-plugin)
 * [Reference](#reference)
 
 <!-- vim-markdown-toc -->
@@ -325,6 +327,15 @@ important_web:
   cpu_shares: 10
 ````
 
+### Volume Plugin
+
+#### GlusterFS Volume Plugin
+```bash
+docker plugin install trajano/glusterfs-volume-plugin
+docker volume create -d trajano/glusterfs-volume-plugin --opt servers=serverIP  volume/subPath
+```
+
 ## Reference
 - [Docker Docs](https://docs.docker.com/)
 - [Docker Compose](https://docs.docker.com/compose/overview/)
+- [Glusterfs Volume Plugin](https://github.com/trajano/docker-volume-plugins/tree/master/glusterfs-volume-plugin)
