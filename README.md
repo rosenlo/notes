@@ -31,6 +31,8 @@ Available notes:
 - StackStorm
     - [st2 基础学习](https://github.com/RosenLo/notes/blob/master/stackstorm/getting_started.md)
     - [st2 进阶学习](https://github.com/RosenLo/notes/blob/master/stackstorm/advanced.md)
+- ETCD
+    - [ 在 Docker 上安装 ETCD 并使用 GlusterFS 作为 Persistent Volume](https://github.com/RosenLo/notes/blob/master/etcd/install_and_deploy_etcd_on_docker.md)
 - ELK
 	- [ElasticSearch 集群部署](https://github.com/RosenLo/notes/blob/master/ELK/ElasticSearch/elasticsearch_cluster_deploy.md)
 	- [监控单个节点](https://github.com/RosenLo/notes/blob/master/ELK/ElasticSearch/monitor_individual_nodes.md)
