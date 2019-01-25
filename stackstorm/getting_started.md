@@ -1,7 +1,7 @@
 # StackStorm Basic
 
 ---
-<!-- vim-markdown-toc GFM -->
+G!-- vim-markdown-toc GFM -->
 
 * [StackStorm 总览](#stackstorm-总览)
     * [StackStorm 介绍](#stackstorm-介绍)
@@ -14,6 +14,17 @@
         * [生成配置文件](#生成配置文件)
         * [启动容器](#启动容器)
         * [销毁容器](#销毁容器)
+* [StackStorm HA Components](#stackstorm-ha-components)
+    * [st2client](#st2client)
+    * [st2web](#st2web)
+    * [st2auth](#st2auth)
+    * [st2api](#st2api)
+    * [st2stream](#st2stream)
+    * [st2rulesengine](#st2rulesengine)
+    * [st2timersengine](#st2timersengine)
+    * [st2workflowengine](#st2workflowengine)
+    * [st2notifier](#st2notifier)
+    * [st2sensorcontainer](#st2sensorcontainer)
 * [参考](#参考)
 
 <!-- vim-markdown-toc -->
@@ -114,7 +125,120 @@ docker-compose up -d
 docker-compose down
 ```
 
+## StackStorm HA Components
+
+### st2client
+
+命令行客户端，一个与所有 st2 容器资源共享的容器，用来切换到已存在的 StackStorm
+集群并执行命令行
+
+```bash
+# obtain st2client pod name
+ST2CLIENT=$(kubectl get pod -l app=st2client -o jsonpath="{.items[0].metadata.name}")
+
+# run a single st2 client command
+kubectl exec -it ${ST2CLIENT} -- st2 --version
+
+# switch into a container shell and use st2 CLI
+kubectl exec -it ${ST2CLIENT} /bin/bash
+```
+
+### st2web
+
+- StackStorm Web UI admin Dashboard
+- k8s 配置包含了一个 `Pod Deployment` 服务(提供了 `2` 个副本，支持 HA )
+- 代理请求到 `st2auth`, `st2api`, `st2strem`
+- st2web 默认使用 `NodePort` 服务，如果需要配置放到公共网络，需要配置
+`LoadBalancer` 或 其他 Proxy
+
+### st2auth
+
+- st2auth 管理所有的认证
+- k8s 配置包含了一个 `Pod Deployment` 服务(提供了 `2` 个副本，支持 HA ) 和监听在 `9100` 端口的 `ClusterIP` 服务
+- 多个 st2auth 进程可以配置在 load balancer 用 active-active 模式
+
+### st2api
+
+- 提供了 REST API 服务处理来自 Web UI, CLI, ChatOps 和其他 st2 组件的请求
+- k8s 配置包含了 `Pod Deployment` 服务(提供了 `2` 个副本，支持 HA ) 和监听在 `9101` 端口的 `ClusterIP` 服务
+- 这是 StackStorm 服务中最重要的服务之一，强烈建议增加副本数，提高处理能力
+
+### st2stream
+
+- 暴露了一个 server-sent 事件流， 一般由 WebUI, ChatOps 等客户端使用接收来自
+st2stream 服务发送的更新信息
+- k8s 配置包含了 `Pod Deployment` (提供了 `2` 个副本，支持 HA ) 和监听在 `9102` 端口的 `ClusterIP` 服务
+
+### st2rulesengine
+
+- 接收 triggers 进行 rule 判断是否执行 action
+- k8s 配置包含了 `Pod Deployment` (提供了 `2` 个副本，支持 HA )
+
+### st2timersengine
+
+- 计时器引擎，本质是一个定时任务
+- k8s 配置包含了 `Pod Deployment` (只提供了 `1` 个副本，不支持 HA )
+- 不能工作在 active-active 模式(多个计时器会处理多个重复的 events )
+- 依赖 k8s failover/reschedule 能力解决处理失败的情况
+
+### st2workflowengine
+
+- 驱动 `orquesta workflows` 和 `shedules action` 通过 `st2actionrunner`
+  组件执行 workflows
+- 多个 processes 可以运行在 active-active 模式
+- k8s 配置包含了 `Pod Deployment` (提供了 `2` 个副本，支持 HA )
+- 空闲时 workflow engine process 共享负载和 work
+
+### st2notifier
+
+- 多个 processes 可以运行在 active-active 模式
+- 使用 RabbitMQ, MongoDB 根据 action 执行完成生成 triggers 以及根据 action 重新调度
+- k8s 配置包含了 `Pod Deployment` (提供了 `2` 个副本，支持 HA )
+- 依赖 etcd 调度
+
+### st2sensorcontainer
+
+- 管理 StackStorm sensors: start, stops and restarts 作为他的子进程
+- k8s 配置包含了 `Pod Deployment` (只提供了 `1` 个副本，不支持 HA)
+- 官方未来会重构这个组件，依赖 k8s failover/reshedule 机制分布到多个 pod
+  来提高计算能力。 more details: [single-sensor-per-container mode #4179](https://github.com/StackStorm/st2/pull/4179)
+
+### st2actionrunner
+
+- 实际执行 actions 的worker
+- k8s 配置包含了一个 `Pod Deployment` 服务(默认提供了 `5` 个副本，可以继续增加，提高处理能力)
+- 依赖 etcd 调度
+
+### st2scheduler
+
+- 处理外部入口的执行 action 请求
+- k8s 配置包含了 `Pod Deployment` (提供了 `2` 个副本，可以继续增加，提高调度能力)
+- 依赖数据库版本控制来调度
+
+### st2garbagecollector
+
+- 根据配置清理陈旧的执行信息和其他操作的数据
+- k8s 配置包含了 `Pod Deployment` (提供了 `1` 个副本，定期执行，1个副本足够了)
+- 默认没有配置，所以需要配置才会执行。清理陈旧的数据会显著提高集群的处理能力，所以在生产环境强烈建议配置垃圾回收
+
+### RabbitMQ HA Cluster
+
+- StackStorm 内部进程通信和负载分配
+- Helm Chart 默认高可用部署，默认3个节点
+
+### MongoDB HA ReplicaSet
+
+- 作为 StackStorm 数据库
+- Helm Chart 默认高可用部署，默认三个节点(一主，两从)
+
+### etcd
+
+- 作为 StackStorm 分布式调度后端
+- 因为 StackStorm 现在对 etcd 的依赖还不是很重，只需要部署一个节点，官方未来会计划在 Helm Chart 部署三个节点 [Issue](https://github.com/StackStorm/stackstorm-ha/issues/8)
+
+
 ## 参考
 
 - [StackStorm Overview](https://docs.stackstorm.com/overview.html)
 - [Install on Docker](https://docs.stackstorm.com/install/docker.html)
+- [k8s HA Components](https://docs.stackstorm.com/latest/install/k8s_ha.html#components)
