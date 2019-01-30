@@ -3,80 +3,76 @@
 ---
 <!-- vim-markdown-toc GFM -->
 
-* [StackStorm Component](#stackstorm-component)
-    * [Actions](#actions)
-        * [Action Runners](#action-runners)
-            * [Available Runners](#available-runners)
-        * [Writing Custom Actions](#writing-custom-actions)
-            * [Action Metadata](#action-metadata)
-            * [Parameters in Actions](#parameters-in-actions)
-            * [Action Registration](#action-registration)
-        * [Overriding Runner Parameters](#overriding-runner-parameters)
-        * [Environment Variables Available to Actions](#environment-variables-available-to-actions)
-        * [Converting Existing Script to Actions](#converting-existing-script-to-actions)
-        * [Writing Custom Python Actions](#writing-custom-python-actions)
-            * [Configuration File](#configuration-file)
-            * [Logging](#logging)
-            * [Action Service](#action-service)
-    * [Sensors](#sensors)
-    * [Triggers](#triggers)
-    * [Rules](#rules)
-        * [Rule Structure](#rule-structure)
-    * [Timers](#timers)
-    * [Workflows](#workflows)
-        * [Orquesta](#orquesta)
-            * [Orquesta Role](#orquesta-role)
-            * [Orquesta Model Definition](#orquesta-model-definition)
-            * [Expressions and Context](#expressions-and-context)
-            * [YAQL](#yaql)
-            * [Jinja](#jinja)
-            * [Workflow Operations](#workflow-operations)
-    * [Pack](#pack)
-        * [What is a Pack?](#what-is-a-pack)
-        * [Managing Packs](#managing-packs)
-        * [Discovering Packs](#discovering-packs)
-        * [Installing a Pack](#installing-a-pack)
-        * [Create and Contribute a Pack](#create-and-contribute-a-pack)
-            * [Anatomy of a Pack](#anatomy-of-a-pack)
-                * [Actions](#actions-1)
-                * [Rule](#rule)
-                * [Sensors](#sensors-1)
-                * [Aliases](#aliases)
-                * [Policies](#policies)
-            * [Creating Your First Pack](#creating-your-first-pack)
-        * [Pack Configuration](#pack-configuration)
-            * [Basic Concepts and Terminology](#basic-concepts-and-terminology)
-                * [Configuration Schema](#configuration-schema)
-                * [Configuration File](#configuration-file-1)
-                * [Static Configuration Values](#static-configuration-values)
-                * [Dynamic Configuration Value (DCV)](#dynamic-configuration-value-dcv)
-            * [Limitations](#limitations)
-                * [Dynamic Config Values](#dynamic-config-values)
-                * [User Context](#user-context)
+* [Actions](#actions)
+    * [Action Runners](#action-runners)
+        * [Available Runners](#available-runners)
+    * [Writing Custom Actions](#writing-custom-actions)
+        * [Action Metadata](#action-metadata)
+        * [Parameters in Actions](#parameters-in-actions)
+        * [Action Registration](#action-registration)
+    * [Overriding Runner Parameters](#overriding-runner-parameters)
+    * [Environment Variables Available to Actions](#environment-variables-available-to-actions)
+    * [Converting Existing Script to Actions](#converting-existing-script-to-actions)
+    * [Writing Custom Python Actions](#writing-custom-python-actions)
+        * [Configuration File](#configuration-file)
+        * [Logging](#logging)
+        * [Action Service](#action-service)
+* [Sensors](#sensors)
+* [Triggers](#triggers)
+* [Rules](#rules)
+    * [Rule Structure](#rule-structure)
+* [Timers](#timers)
+* [Workflows](#workflows)
+    * [Orquesta](#orquesta)
+        * [Orquesta Role](#orquesta-role)
+        * [Orquesta Model Definition](#orquesta-model-definition)
+        * [Expressions and Context](#expressions-and-context)
+        * [YAQL](#yaql)
+        * [Jinja](#jinja)
+        * [Workflow Operations](#workflow-operations)
+* [Pack](#pack)
+    * [What is a Pack?](#what-is-a-pack)
+    * [Managing Packs](#managing-packs)
+    * [Discovering Packs](#discovering-packs)
+    * [Installing a Pack](#installing-a-pack)
+    * [Create and Contribute a Pack](#create-and-contribute-a-pack)
+        * [Anatomy of a Pack](#anatomy-of-a-pack)
+            * [Actions](#actions-1)
+            * [Rule](#rule)
+            * [Sensors](#sensors-1)
+            * [Aliases](#aliases)
+            * [Policies](#policies)
+        * [Creating Your First Pack](#creating-your-first-pack)
+    * [Pack Configuration](#pack-configuration)
+        * [Basic Concepts and Terminology](#basic-concepts-and-terminology)
+            * [Configuration Schema](#configuration-schema)
+            * [Configuration File](#configuration-file-1)
+            * [Static Configuration Values](#static-configuration-values)
+            * [Dynamic Configuration Value (DCV)](#dynamic-configuration-value-dcv)
+        * [Limitations](#limitations)
+            * [Dynamic Config Values](#dynamic-config-values)
+            * [User Context](#user-context)
     * [Datastore](#datastore)
 * [Reference](#reference)
 
 <!-- vim-markdown-toc -->
 ---
 
-
-## StackStorm Component
-
-### Actions
+## Actions
 
 - action 是可以任意执行的代码片段，可以用各种语言编写
 - 当被规则条件所匹配，通过 tigger 触发
 - 多个 action 可以组成 workflow
 - 也可以直接通过 CLI, API, UI 执行
 
-#### Action Runners
+### Action Runners
 
 - action runner 是一个用户执行 action 的运行环境
 - StackStorm 预装了很多 action runner， 为了让用户专注于 action
   的实现，而不是底层运行环境
 
 
-##### Available Runners
+#### Available Runners
 
 仅列出常用的几个 runners ，更多请参考 [Action Runners](https://docs.stackstorm.com/latest/actions.html#action-runners)
 
@@ -91,7 +87,7 @@
 9. `cloudslang` - 也是一个workflow runner， 在 v2.9 将被移除
 10. `inquirer` -  注意: 这个 runner 为了`core.ask` action 而实现的, 在其他 case 不应该引用
 
-#### Writing Custom Actions
+### Writing Custom Actions
 
 - 一个 YAML 元数据文件，包含 action, input
 - 一个实现了 action 逻辑的脚本文件
@@ -101,7 +97,7 @@ action 脚本可以用任意语言实现，只要符合以下规则：
 - 脚本成功时退出码为 `0`，失败时非 `0` （例如：1）
 - 所有日志信息需要以标准错误输出，即 `stderr`
 
-##### Action Metadata
+#### Action Metadata
 
 - `name` - string
 - `runner_type` - string, action 的 runner 类型
@@ -152,7 +148,7 @@ parameters:
         default: "Hello {% if system.user %} {{ st2kv.system.user }} {% else %} dude {% endif %}!"
 ```
 
-##### Parameters in Actions
+#### Parameters in Actions
 
 - 模板文件中通过 `st2kv.system` 访问 parameters
 - 在执行中通过 `action_context` 访问 paramaters
@@ -172,14 +168,14 @@ parameters:
     ...
     ```
 
-##### Action Registration
+#### Action Registration
 
 - 放在对应目录`/opt/stackstorm/packs/${pack_name}/`
 - registry `st2 action create my_action_metadata.yaml`
 - reload `st2ctl reload --register-actions`
 
 
-#### Overriding Runner Parameters
+### Overriding Runner Parameters
 
 Runner 的参数可以被覆盖，在一些场景如：需要自定义和简化操作
 
@@ -228,7 +224,7 @@ For example：
 - immutable
 - required
 
-#### Environment Variables Available to Actions
+### Environment Variables Available to Actions
 
 默认，`local`, `remote`, `python_runner` 可以使用以下 env 变量：
 
@@ -249,7 +245,7 @@ RESULT=$(curl -H "X-Auth-Token: ${ST2_ACTION_AUTH_TOKEN}" ${ST2_ACTION_API_URL}/
 echo ${RESULT}
 ```
 
-#### Converting Existing Script to Actions
+### Converting Existing Script to Actions
 
 **Note: 如果没有参数可以跳过这步**
 
@@ -351,7 +347,7 @@ script.sh value1 "" value3
 ```
 
 
-#### Writing Custom Python Actions
+### Writing Custom Python Actions
 
 python action 其实是一个继承 `st2common.runners.base_action.Action`
 并重写 `run` 方法的模块。
@@ -402,13 +398,13 @@ For exmaple:
 - `return (False, "Failed!")` 表示执行状态失败，result 对象是 `"Failed!"`
 
 
-##### Configuration File
+#### Configuration File
 
 用于存放静态配置，文件命名规范：`<pack_name>.yaml`
 
 更多信息参考 [Pack Configuration](#pack-configuration)
 
-##### Logging
+#### Logging
 
 这个 logger 是标准 python logger 来自 `logging`模块
 
@@ -425,7 +421,7 @@ def run(self):
         self.logger.error('Action failed...')
 ```
 
-##### Action Service
+#### Action Service
 
 类似于 sensors， `action_service`
 提供了一个全局（整个 workflow ）对象，可以用来在不同 task 之间做数据传递等等
@@ -452,24 +448,24 @@ def run(self):
 ```
 
 
-### Sensors
+## Sensors
 
 - 将外部系统与 StackStorm 内部 event 集成，支持 push/pull
 - 对 event 进行 rule 匹配触发 trigger
 - Sensor 通常会注册一个 trigger，但不是必需。例如：webhook
 
-### Triggers
+## Triggers
 
 - 识别入站的 event
 - 由 type(string) 和可选的 parameters(object) 组成 tuple
 - 通常与 Rules 组合
 
-### Rules
+## Rules
 
 - 映射 tiggers 到 actions/workflow
 - 匹配 criteria (payload 字段) map 到 action input
 
-#### Rule Structure
+### Rule Structure
 
 ```yaml
 ---
@@ -497,14 +493,14 @@ def run(self):
 ```
 
 
-### Timers
+## Timers
 
 - Interval
 - Cron: 类似于 Linux 中的 Crontab，不过更加灵活
 - DateTime: 在特定的时间执行
 
 
-### Workflows
+## Workflows
 
 StackStorm 支持两种类型：ActionChain 和 Mistral
 
@@ -513,7 +509,7 @@ StackStorm 支持两种类型：ActionChain 和 Mistral
 - Orquesta: 专为 StackStorm 设计的新一代 workflow engine，目前处于 beta 测试阶段，未来 Action Chain 和 Mistral 都将被替换
 
 
-#### Orquesta
+### Orquesta
 
 graph based wrkflow engine designed，Orquesta 具有以下特点：
 
@@ -525,7 +521,7 @@ graph based wrkflow engine designed，Orquesta 具有以下特点：
 - 工作流追溯
 
 
-##### Orquesta Role
+#### Orquesta Role
 
 - conductor
     - 指导 workflow 走向
@@ -540,7 +536,7 @@ graph based wrkflow engine designed，Orquesta 具有以下特点：
     - 执行结果信息返回给 conductor
 
 
-##### Orquesta Model Definition
+#### Orquesta Model Definition
 
 - Workflow Model
 
@@ -713,7 +709,7 @@ output:
   - result: <% ctx().abcd %>
 ```
 
-##### Expressions and Context
+#### Expressions and Context
 
 - Type
     - [YAQL](https://yaql.readthedocs.io/en/latest/)
@@ -772,7 +768,7 @@ output:
         action: core.noop
     ```
 
-##### YAQL
+#### YAQL
 
 YAQL(Yet Another Query Language) 是 OpenStack
 下的一个项目，用于复杂的数据查询和传输，在 Workflow 中定义 YAQL 表达式：`<% YAQL expression %>`
@@ -882,7 +878,7 @@ YAQL(Yet Another Query Language) 是 OpenStack
       例如：`st2kv('st2_key_id', decrypt=true)`
 
 
-##### Jinja
+#### Jinja
 
 Jinja 表达式：`{{ Jinja expression }}`, 代码块：`{% %}`
 
@@ -898,7 +894,7 @@ Jinja 表达式：`{{ Jinja expression }}`, 代码块：`{% %}`
     - 与 StackStorm Function 一致
 
 
-##### Workflow Operations
+#### Workflow Operations
 
 - Pausing: `st2 execution pause <execution-id>`
     - 必须在 Workflow 状态为`running` 时才能 pause
@@ -919,9 +915,9 @@ Jinja 表达式：`{{ Jinja expression }}`, 代码块：`{% %}`
     - 相当于重新执行一遍 Workflow， 未来将支持 Re-run 特定 task
 
 
-### Pack
+## Pack
 
-#### What is a Pack?
+### What is a Pack?
 
 - pack 是扩展 StackStorm 的集成和自动化的部署单位
 - 通常 pack 是根据符合和产品划定边界，例如 AWS, Docker, Ansible etc.
@@ -929,7 +925,7 @@ Jinja 表达式：`{{ Jinja expression }}`, 代码块：`{% %}`
 - StackStorm 的内容始终是 pack 的一部分， 所以了解怎么去创建一个 pack 和如何工作非常重要
 - 在 [StackStorm Exchange](https://exchange.stackstorm.org/) 上可以找到公共 pack
 
-#### Managing Packs
+### Managing Packs
 
 管理 pack 主要通过命令: `st2 pack <...>`, 更多帮助 `st2 pack -h`
 
@@ -943,11 +939,11 @@ st2 pack list
 st2 pack get core
 ```
 
-#### Discovering Packs
+### Discovering Packs
 
 搜索公共包通过命令 `st2 pack search packname`
 
-#### Installing a Pack
+### Installing a Pack
 
 默认安装会从 [StackStorm Exchange on GitHub](https://github.com/StackStorm-Exchange) 上下载 packs 到本地 `/opt/stackstorm/packs` 然后注册到 StackStorm
 
@@ -990,11 +986,11 @@ st2 pack install file:///tmp/bitcoin
 
 配置文件不会被覆盖，可以很轻松回滚，在生产环境建议用 latest，避免错过大变更
 
-#### Create and Contribute a Pack
+### Create and Contribute a Pack
 
 pack 有一个定义的结构体，创建一个新 pack 需要遵循这个结构，在 debugging 问题的时候有帮助
 
-##### Anatomy of a Pack
+#### Anatomy of a Pack
 
 一个典型的 pack 文件层级如下所示:
 
@@ -1024,7 +1020,7 @@ icon.png                 # 64x64 .png icon
 
 更多配置 Schema 参考 [Pack Configuration](#pack-configuration)
 
-###### Actions
+##### Actions
 
 ```bash
 # contents of actions/
@@ -1045,7 +1041,7 @@ actions/
 - 把 workflow 配置文件放在不同路径是好的做法
 - 注意 `lib` 子文件夹通常用来存放公共 Python 代码，用来被 pack actions 使用
 
-###### Rule
+##### Rule
 
 ```bash
 # contents of rules/
@@ -1057,7 +1053,7 @@ rules/
 - `rules` 文件夹包含了 rules
 - 有关如何写 rules 细节参考 [Rules](#rules)
 
-###### Sensors
+##### Sensors
 
 ```bash
 # contents of sensors/
@@ -1072,7 +1068,7 @@ sensors/
 - `sensors` 文件夹包含了 sensors
 - 有关如何写 sensors 细节参考 [Sensors](#sensors)
 
-###### Aliases
+##### Aliases
 
 ```bash
  contents of aliases/
@@ -1084,7 +1080,7 @@ aliases/
 - `aliases` 文件夹包含了 aliases
 - 有关如何写 aliases 细节参考 [Aliases](#action-aliases)
 
-###### Policies
+##### Policies
 
 ```bash
 # contents of policies/
@@ -1097,7 +1093,7 @@ policies/
 - 有关如何写 policies 细节参考 [Policies](#policies)
 
 
-##### Creating Your First Pack
+#### Creating Your First Pack
 
 下面的例子，我们会创建一个简单的 pack 叫做 **hello_st2**
 
@@ -1301,7 +1297,7 @@ policies/
     st2ctl reload
     ```
 
-#### Pack Configuration
+### Pack Configuration
 
 pack 可以使用配置文件共享公共配置，例如：API
 认证、连接信息、限制和阈值。这些配置在 `actions`, `sensors` 运行时可以使用
@@ -1314,9 +1310,9 @@ pack configuration 遵循 infrastructure as code 理念，以 YAML 格式的文�
 `/opt/stackstorm/configs` 目录下，每个 pack 都需要定义自己的 schema
 configuration 文件
 
-##### Basic Concepts and Terminology
+#### Basic Concepts and Terminology
 
-###### Configuration Schema
+##### Configuration Schema
 
 这个文件叫做 `config.schema.yaml` ，位于 `/opt/stackstorm/packs/<mypack>/`
 目录下
@@ -1384,7 +1380,7 @@ Note: `api_secret` 被标记为 `secret`，代表如果这个值被动态使用�
 ```
 
 
-###### Configuration File
+##### Configuration File
 
 这是个 YAML 格式的文件，可以包含**静态**或**动态**的值。
 命名规范是 `<pacn name>.yaml` 位于 `/opt/stackstorm/configs/`
@@ -1405,11 +1401,11 @@ For example: pack `libcloud`, 位于 `/opt/stackstorm/configs/libcloud.yaml`
   脚本，对 configs ，需要附加 `--register-configs` flag
 - 当注册加载 configs 时会验证**静态值**的有效性，而**动态值**是 `jinja` 语法存在 DB ，在运行时解析，所以在注册加载阶段不会被验证有效性
 
-###### Static Configuration Values
+##### Static Configuration Values
 
 静态值从配置文件加载然后直接使用
 
-###### Dynamic Configuration Value (DCV)
+##### Dynamic Configuration Value (DCV)
 
 **Note**: 现在只支持 `strings` 字符串类型的DCV
 
@@ -1444,18 +1440,18 @@ st2 key set api_secret "my super secret api secret" --scope=user --encrypt
 st2 key set private_key_path "/home/myuser/.ssh/my_private_rsa_key"
 ```
 
-##### Limitations
+#### Limitations
 
 Dynamic Config Values 的上下文有一些限制需要注意
 
-###### Dynamic Config Values
+##### Dynamic Config Values
 
 - 目前仅支持 strings 字符串类型。这是为了保持功能简单和与已存在的 datastore
   操作兼容
 - 如果你想使用非 string 类型的 value，可以 JSON 序列化存储在 datastore，然后在
   action/sensor 代码中反序列化
 
-###### User Context
+##### User Context
 
 user context 只能通过 StackStorm API 触发的 actions 可用。
 
