@@ -78,6 +78,8 @@
 
 ##### Available Runners
 
+仅列出常用的几个 runners ，更多请参考 [Action Runners](https://docs.stackstorm.com/latest/actions.html#action-runners)
+
 1. `local-shell-cmd` - 在 StackStorm 本机运行 Linux 命令
 2. `local-shell-script` - 在 StackStorm 本机运行 script
 3. `remote-shell-cmd` - 在一个或多个机器上运行 Linux 命令
@@ -106,7 +108,6 @@ action 脚本可以用任意语言实现，只要符合以下规则：
 - `enabled` - bool
 - `entry_point` - string, action 脚本的相对路径
 - `parameters` - 字典结构，metadata 结构遵循 JSON Schema，如果 metadata 提供，input args 将会校验，否则跳过
-
     - `parameter` - 参数名
         - `type` - string, 参数类型
         - `description` - string, 参数描述
@@ -116,7 +117,6 @@ action 脚本可以用任意语言实现，只要符合以下规则：
         - `secret` - bool, 如果为 ture ，这个参数的值在 StackStorm 服务的 log
           中将被屏蔽
         - `immutable` - bool, 定义这个参数的默认值是否可以被覆盖
-
 - `tags` - list, 一个带有标签的数组结构，用来提供补充信息
 
 For example：
@@ -158,7 +158,7 @@ parameters:
 - 在执行中通过 `action_context` 访问 paramaters
 - 还可以通过 `config_context` 访问 [pack configuration](#pack-configuration)
 - 在ActionChains 和 [Workflow](#workflow) 中，每一个 task 可以访问父
-  `execution_id` 例如：
+  - `execution_id` 例如：
 
     ```yaml
     ...
@@ -263,13 +263,12 @@ echo ${RESULT}
 
 3. 更新脚本中的参数解析
 
-
 - `named` - 参数不是位置参数
 - `positional` - 位置参数
 
 命名参数通过以下格式传递：
 
-```
+```bash
 script.sh --param1=value --param2=value --param3=value
 ```
 
@@ -299,23 +298,23 @@ parameters:
         default: "-"
 ```
 
-```
+```bash
 script.sh -key1=value1 -key2=value2 -key3=value3
 ```
 
 位置参数通过以下格式传递：
 
-```
+```bash
 script.sh value2 value1 value3
 ```
 
 如果只用位置参数，只需要在 metadata 文件中声明 parameters - `position`
 属性，序列化基于以下规则：
 
-- `string`, `integer`, `float` - 序列化为 string
-- `boolean` - 序列化为 string 1 (true) or 0 (false)
-- `array` - 序列化为逗号分隔的string (e.g. `foo,bar,baz`)
-- `object` - 序列化为 JSON
+1. `string`, `integer`, `float` - 序列化为 string
+1. `boolean` - 序列化为 string 1 (true) or 0 (false)
+1. `array` - 序列化为逗号分隔的string (e.g. `foo,bar,baz`)
+1. `object` - 序列化为 JSON
 
 For exmaple:
 
@@ -341,13 +340,13 @@ parameters:
         position: 3
 ```
 
-```
+```bash
 script.sh value1 value2 value3
 ```
 
 如果第二个位置参数是可选的，可以传一个空字符
 
-```
+```bash
 script.sh value1 "" value3
 ```
 
