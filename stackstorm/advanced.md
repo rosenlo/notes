@@ -31,7 +31,29 @@
             * [YAQL](#yaql)
             * [Jinja](#jinja)
             * [Workflow Operations](#workflow-operations)
-    * [Pack Configuration](#pack-configuration)
+    * [Pack](#pack)
+        * [What is a Pack?](#what-is-a-pack)
+        * [Managing Packs](#managing-packs)
+        * [Discovering Packs](#discovering-packs)
+        * [Installing a Pack](#installing-a-pack)
+        * [Create and Contribute a Pack](#create-and-contribute-a-pack)
+            * [Anatomy of a Pack](#anatomy-of-a-pack)
+                * [Actions](#actions-1)
+                * [Rule](#rule)
+                * [Sensors](#sensors-1)
+                * [Aliases](#aliases)
+                * [Policies](#policies)
+            * [Creating Your First Pack](#creating-your-first-pack)
+        * [Pack Configuration](#pack-configuration)
+            * [Basic Concepts and Terminology](#basic-concepts-and-terminology)
+                * [Configuration Schema](#configuration-schema)
+                * [Configuration File](#configuration-file-1)
+                * [Static Configuration Values](#static-configuration-values)
+                * [Dynamic Configuration Value (DCV)](#dynamic-configuration-value-dcv)
+            * [Limitations](#limitations)
+                * [Dynamic Config Values](#dynamic-config-values)
+                * [User Context](#user-context)
+    * [Datastore](#datastore)
 * [Reference](#reference)
 
 <!-- vim-markdown-toc -->
@@ -60,12 +82,12 @@
 2. `local-shell-script` - 在 StackStorm 本机运行 script
 3. `remote-shell-cmd` - 在一个或多个机器上运行 Linux 命令
 4. `remote-shell-script` - 在一个或多个机器上运行 script
-5. `python-script` - 这是一个 Python runner. 需要写一个 Python classes 继承StackStorm Base classes 实现 `run()` 方法. 在 StackStorm 本机运行. `run()` 方法返回一个数组，包含成功状态和结果对象，更多信息参考 [Action Runners](#Action Runners)
+5. `python-script` - 这是一个 Python runner. 需要写一个 Python classes 继承StackStorm Base classes 实现 `run()` 方法. 在 StackStorm 本机运行. `run()` 方法返回一个数组，包含成功状态和结果对象，更多信息参考 [Action Runners](#action-runners)
 6. `http-request` - HTTP client，可以发送 HTTP 请求
 7. `action-chain` - 内置 workflow runner, 支持执行一些简单的 workflow。更多信息参考 [ActionChain](https://docs.stackstorm.com/latest/actionchain.html)
 8. `mistral-v2` - OpenStack 内置的 workflow，支持复杂的 workflow。更多信息参考 [Mistral](https://docs.stackstorm.com/latest/mistral.html)
 9. `cloudslang` - 也是一个workflow runner， 在 v2.9 将被移除
-10. `inquirer - This runner provides the core logic of the Inquiries feature. 注意: 这个 runner 为了`core.ask` action 而实现的, 在其他 case 不应该引用
+10. `inquirer` -  注意: 这个 runner 为了`core.ask` action 而实现的, 在其他 case 不应该引用
 
 #### Writing Custom Actions
 
@@ -898,7 +920,554 @@ Jinja 表达式：`{{ Jinja expression }}`, 代码块：`{% %}`
     - 相当于重新执行一遍 Workflow， 未来将支持 Re-run 特定 task
 
 
-### Pack Configuration
+### Pack
+
+#### What is a Pack?
+
+- pack 是扩展 StackStorm 的集成和自动化的部署单位
+- 通常 pack 是根据符合和产品划定边界，例如 AWS, Docker, Ansible etc.
+- pack 可以包含 [Actions](#actions), [Workflows](#workflows), [Rules](#rules), [Sensors](#sensors), [Aliases](#action-aliases)
+- StackStorm 的内容始终是 pack 的一部分， 所以了解怎么去创建一个 pack 和如何工作非常重要
+- 在 [StackStorm Exchange](https://exchange.stackstorm.org/) 上可以找到公共 pack
+
+#### Managing Packs
+
+管理 pack 主要通过命令: `st2 pack <...>`, 更多帮助 `st2 pack -h`
+
+`list` 和 `get` 是主要查看本地 pack 信息的命令:
+
+```bash
+# List all installed packs
+st2 pack list
+
+# Get detailed information about an installed pack
+st2 pack get core
+```
+
+#### Discovering Packs
+
+搜索公共包通过命令 `st2 pack search packname`
+
+#### Installing a Pack
+
+默认安装会从 [StackStorm Exchange on GitHub](https://github.com/StackStorm-Exchange) 上下载 packs 到本地 `/opt/stackstorm/packs` 然后注册到 StackStorm
+
+```bash
+# Install from the Exchange by pack name
+st2 pack install sensu
+
+# You can also install multiple packs:
+st2 pack install datadog github
+```
+
+安装指定 git 仓库 pack
+
+```bash
+# Install your own pack from git
+st2 pack install https://github.com/emedvedev/chatops_tutorial
+```
+
+默认安装 latest 版本，如果需要特定版本，通过 `=` 指定 ，例如：
+
+```bash
+# Fetch a specific commit
+st2 pack install cloudflare=776b9a4
+
+# Or a version tag
+st2 pack install cloudflare=0.1.0
+
+# Or a branch
+st2 pack install https://github.com/emedvedev/chatops_tutorial=testing
+```
+
+安装本地 pack
+
+```bash
+# Install a pack from '/tmp/bitcoin' dir
+st2 pack install file:///tmp/bitcoin
+```
+
+运行 `st2 pack install` 在已安装的 pack 上会**替换**或更新版本到 latest, 如果没有指定版本
+
+配置文件不会被覆盖，可以很轻松回滚，在生产环境建议用 latest，避免错过大变更
+
+#### Create and Contribute a Pack
+
+pack 有一个定义的结构体，创建一个新 pack 需要遵循这个结构，在 debugging 问题的时候有帮助
+
+##### Anatomy of a Pack
+
+一个典型的 pack 文件层级如下所示:
+
+```bash
+# contents of a pack folder
+actions/                 #
+rules/                   #
+sensors/                 #
+aliases/                 #
+policies/                #
+tests/                   #
+etc/                     # any additional things (e.g code generators, scripts...)
+config.schema.yaml       # configuration schema
+packname.yaml.example    # example of config, used in CI
+pack.yaml                # pack definition file
+requirements.txt         # requirements for Python packs
+requirements-tests.txt   # requirements for python tests
+icon.png                 # 64x64 .png icon
+```
+
+最上面的是几个主要的文件目录 `actions`, `rules`, `sensors` 和 `policies`
+还有一些分享文件:
+
+- `pack.yaml` - Metadata 文件描述和定义了文件夹作为 pack
+- `config.schema.yaml` - Schema 定义了 pack 使用的配置元素
+- `requirements.txt` - python 依赖库，在 pack 安装时会自动安装依赖
+
+更多配置 Schema 参考 [Pack Configuration](#pack-configuration)
+
+###### Actions
+
+```bash
+# contents of actions/
+actions/
+   lib/
+   action1.yaml
+   action1.py
+   action2.yaml
+   action1.sh
+   workflow1.yaml
+   workflow2.yaml
+   workflows/
+     workflow1.yaml
+     workflow2.yaml
+```
+
+- `actions` 文件夹包含了 action 脚本和 action metadata 文件
+- 把 workflow 配置文件放在不同路径是好的做法
+- 注意 `lib` 子文件夹通常用来存放公共 Python 代码，用来被 pack actions 使用
+
+###### Rule
+
+```bash
+# contents of rules/
+rules/
+   rule1.yaml
+   rule2.yaml
+```
+
+- `rules` 文件夹包含了 rules
+- 有关如何写 rules 细节参考 [Rules](#rules)
+
+###### Sensors
+
+```bash
+# contents of sensors/
+sensors/
+   common/
+   sensor1.py
+   sensor1.yaml
+   sensor2.py
+   sensor2.yaml
+```
+
+- `sensors` 文件夹包含了 sensors
+- 有关如何写 sensors 细节参考 [Sensors](#sensors)
+
+###### Aliases
+
+```bash
+ contents of aliases/
+aliases/
+   alias1.yaml
+   alias2.yaml
+```
+
+- `aliases` 文件夹包含了 aliases
+- 有关如何写 aliases 细节参考 [Aliases](#action-aliases)
+
+###### Policies
+
+```bash
+# contents of policies/
+policies/
+   policy1.yaml
+   policy2.yaml
+```
+
+- `policies` 文件夹包含了 Policies
+- 有关如何写 policies 细节参考 [Policies](#policies)
+
+
+##### Creating Your First Pack
+
+下面的例子，我们会创建一个简单的 pack 叫做 **hello_st2**
+
+1. 创建 pack 目录结构和相关文件
+
+    ```bash
+    # Use the name of the pack for the folder name.
+    mkdir hello_st2
+    cd hello_st2
+    mkdir actions
+    mkdir rules
+    mkdir sensors
+    mkdir aliases
+    mkdir policies
+    touch pack.yaml
+    touch requirements.txt
+    ```
+
+    **Note**: 所有文件夹都是可选，只要保持空文件夹就行，唯一必须要求创建 `config.schema.yaml`文件，空 schema 文件是无效的
+
+2. 创建 pack metadata 文件 `pack.yaml`:
+
+    ```yaml
+    ---
+    ref: hello_st2
+    name: Hello StackStorm
+    description: Simple pack containing examples of sensor, rule, and action.
+    keywords:
+        - example
+        - test
+    version: 0.1.0
+    python_versions:
+    - "2"
+    - "3"
+    author: StackStorm, Inc.
+    email: info@stackstorm.com
+    ```
+    **Note**: 在 metadata 中会强制运行以下规则：
+    - `version` 值必须符合 [Senmantic Versioning](https://semver.org/): `0.2.5`, 而不是 `0.2`
+    - `name` 值只允许包含字母，数字和下划线，除非你明确设置 `ref`
+    - `email` 必须包含合法格式的邮箱地址
+
+3. 创建 [action](#actions)，由 metadata 和 entrypoint 组成
+
+    看一个简单的例子：
+
+    ```yaml
+    ---
+    name: greet
+    pack: hello_st2
+    runner_type: "local-shell-script"
+    description: Greet StackStorm!
+    enabled: true
+    entry_point: greet.sh
+    parameters:
+        greeting:
+            type: string
+            description: Greeting you want to say to StackStorm (i.e. Hello, Hi, Yo, etc.)
+            required: true
+            position: 1
+    ```
+
+    创建 `entry_point` 脚本：
+
+    ```bash
+    #!/bin/bash
+    echo "$1, StackStorm!"
+    ```
+
+4. 创建 [sensor](#sensors)
+
+    下面这个简单的 sensor 每隔60秒发出一个 event 到 StackStorm
+
+    `sensors/sensor1.yaml`:
+
+    ```yaml
+    ---
+    class_name: "HelloSensor"
+    entry_point: "sensor1.py"
+    description: "Test sensor that emits triggers."
+    trigger_types:
+    -
+        name: "event1"
+        description: "An example trigger."
+        payload_schema:
+        type: "object"
+    ```
+
+    `sensors/sensor1.py`:
+
+    ```python
+    import eventlet
+
+    from st2reactor.sensor.base import Sensor
+
+
+    class HelloSensor(Sensor):
+        def __init__(self, sensor_service, config):
+            super(HelloSensor, self).__init__(sensor_service=sensor_service, config=config)
+            self._logger = self.sensor_service.get_logger(name=self.__class__.__name__)
+            self._stop = False
+
+        def setup(self):
+            pass
+
+        def run(self):
+            while not self._stop:
+                self._logger.debug('HelloSensor dispatching trigger...')
+                count = self.sensor_service.get_value('hello_st2.count') or 0
+                payload = {'greeting': 'Yo, StackStorm!', 'count': int(count) + 1}
+                self.sensor_service.dispatch(trigger='hello_st2.event1', payload=payload)
+                self.sensor_service.set_value('hello_st2.count', payload['count'])
+                eventlet.sleep(60)
+
+        def cleanup(self):
+            self._stop = True
+
+        # Methods required for programmable sensors.
+        def add_trigger(self, trigger):
+            pass
+
+        def update_trigger(self, trigger):
+            pass
+
+        def remove_trigger(self, trigger):
+            pass
+    ```
+
+5. 创建 [rule](#rules)
+
+    下面的 rule 示例由 sensor 接受 event 通过 trigger 调用上面定义的 action
+
+    `rules/rule1.yaml`:
+
+    ```yaml
+    ---
+    name: on_hello_event1
+    pack: hello_st2
+    description: Sample rule firing on hello_st2.event1.
+    enabled: true
+    trigger:
+        type: hello_st2.event1
+    action:
+        ref: hello_st2.greet
+        parameters:
+            greeting: Yo
+    ```
+
+6. 创建 [action alias](#action-aliases)
+
+    `aliases/alias1.yaml`:
+
+    ```yaml
+    ---
+    name: greet
+    pack: hello_st2
+    description: "Greet StackStorm"
+    action_ref: "hello_st2.greet"
+    formats:
+    - "greet {{greeting}}"
+    ```
+
+7. 创建 [policy](#policy)
+
+    下面的 policy 示例限制了 `greet` action 的并发数
+
+    `policies/policy1.yaml`:
+
+    ```yaml
+    ---
+    name: greet.concurrency
+    pack: hello_st2
+    description: Limits the concurrent executions of the greet action.
+    enabled: true
+    resource_ref: hello_st2.greet
+    policy_type: action.concurrency
+    parameters:
+        threshold: 10
+    ```
+
+8. 安装 pack
+
+    - 使用 git 和 `pack install` （推荐）
+
+    ```bash
+    # Get the code under git
+    cd hello_st2
+    git init && git add ./* && git commit -m "Initial commit"
+    # Install from local git repo
+    st2 pack install file:///$PWD
+    ```
+
+    如果本地有更新再次运行 `st2 pack install file:///$PWD`
+
+    如果是更新在 GitHub Repo 运行 `st2 pack install https://github.com/MY/PACK`
+
+    - 覆盖和重载
+
+    ```bash
+    mv ./hello_st2 /opt/stackstorm/packs
+    st2ctl reload
+    ```
+
+#### Pack Configuration
+
+pack 可以使用配置文件共享公共配置，例如：API
+认证、连接信息、限制和阈值。这些配置在 `actions`, `sensors` 运行时可以使用
+
+pack configuration 和 action parameters 不一样的是 pack 配置对 pack
+所有资源可用，且很少更改。而 action param
+调用动态传参，参数易变。例如：可能来自 rule 映射的 input event
+
+pack configuration 遵循 infrastructure as code 理念，以 YAML 格式的文件存放在
+`/opt/stackstorm/configs` 目录下，每个 pack 都需要定义自己的 schema
+configuration 文件
+
+##### Basic Concepts and Terminology
+
+###### Configuration Schema
+
+这个文件叫做 `config.schema.yaml` ，位于 `/opt/stackstorm/packs/<mypack>/`
+目录下
+
+```yaml
+---
+  api_key:
+    description: "API key"
+    type: "string"
+    required: true
+  api_secret:
+    description: "API secret"
+    type: "string"
+    secret: true
+    required: true
+  region:
+    description: "API region to use"
+    type: "string"
+    required: true
+    default: "us-east-1"
+  private_key_path:
+    description: "Path to the private key file to use"
+    type: "string"
+    required: false
+```
+
+Note: `api_secret` 被标记为 `secret`，代表如果这个值被动态使用将会加密存储在数据库里
+
+除了上面的扁平配置，schemas 还支持嵌套对象：
+
+```yaml
+---
+  consumer_key:
+    description: "Your consumer key."
+    type: "string"
+    required: true
+    secret: true
+  consumer_secret:
+    description: "Your consumer secret."
+    type: "string"
+    required: true
+    secret: true
+  access_token:
+    description: "Your access token."
+    type: "string"
+    required: true
+    secret: true
+  access_token_secret:
+    description: "Your access token secret."
+    type: "string"
+    required: true
+    secret: true
+  sensor:
+    description: "Sensor specific settings."
+    type: "object"
+    required: false
+    additionalProperties: false
+    properties:
+      device_uids:
+        type: "array"
+        description: "A list of device UIDs to poll metrics for."
+        items:
+          type: "string"
+        required: false
+```
+
+
+###### Configuration File
+
+这是个 YAML 格式的文件，可以包含**静态**或**动态**的值。
+命名规范是 `<pacn name>.yaml` 位于 `/opt/stackstorm/configs/`
+目录，文件所属应该为 `st2:st2`
+
+For example: pack `libcloud`, 位于 `/opt/stackstorm/configs/libcloud.yaml`
+
+```yaml
+---
+  api_key: "some_api_key"
+  api_secret: "{{st2kv.user.api_secret}}"  # user-scoped configuration value which is also a secret as declared in config schema
+  region: "us-west-1"
+  private_key_path: "{{st2kv.system.private_key_path}}"  # global datastore value
+```
+
+- Configuration 文件在运行时不会读动态配置
+- 静态配置需要注册加载到 DB 通过运行 `st2ctl reload/st2-register-content`
+  脚本，对 configs ，需要附加 `--register-configs` flag
+- 当注册加载 configs 时会验证**静态值**的有效性，而**动态值**是 `jinja` 语法存在 DB ，在运行时解析，所以在注册加载阶段不会被验证有效性
+
+###### Static Configuration Values
+
+静态值从配置文件加载然后直接使用
+
+###### Dynamic Configuration Value (DCV)
+
+**Note**: 现在只支持 `strings` 字符串类型的DCV
+
+DCV 是一个 `jinja` 模板表达式，在运行时解析为 [Datastore](#datastore) name(key)，然后把 datastore value 作为 configuration value
+
+DCV 提供了额外的灵活性，还支持用户范围的 datastore
+values，当你想不同用户调用 action 使用不同的配置时这非常有用
+
+DCV 参考:
+
+```yaml
+---
+  api_secret: "{{st2kv.user.api_secret}}"  # user-scoped configuration value which is also a secret as declared in config schema
+  private_key_path: "{{st2kv.system.private_key_path}}"  # global datastore value
+```
+
+`api_secret` 是用户范围的DCV，意味着 `user` 将会被替换成执行这个 action 的 username
+
+DCV 存储在 datastore 使用 CLI 和 API 配置
+
+如果 value 在 schema 被标记为 secret ，设置 value 需要附加 `--encrypt` flag
+，将会被加密存储在 datastore
+
+```bash
+st2 key set api_secret "my super secret api secret" --scope=user --encrypt
+```
+
+在上面的例子， `private_key_path` 是个常规 DCV ，常规 DCV
+可以被管理员和任意用户使用
+
+```bash
+st2 key set private_key_path "/home/myuser/.ssh/my_private_rsa_key"
+```
+
+##### Limitations
+
+Dynamic Config Values 的上下文有一些限制需要注意
+
+###### Dynamic Config Values
+
+- 目前仅支持 strings 字符串类型。这是为了保持功能简单和与已存在的 datastore
+  操作兼容
+- 如果你想使用非 string 类型的 value，可以 JSON 序列化存储在 datastore，然后在
+  action/sensor 代码中反序列化
+
+###### User Context
+
+user context 只能通过 StackStorm API 触发的 actions 可用。
+
+这意味着 `{{st2kv.user.some_value}}` 表达式仅在正确的 user 通过 StackStorm API
+触发的 action 才会解析
+
+如果是被 rule 触发， user context 则不可用 `{{st2kv.user}}` 会被解析为系统用户（默认: `stanley`）
+
+
+
+### Datastore
 
 ## Reference
 
