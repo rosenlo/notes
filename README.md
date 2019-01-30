@@ -17,11 +17,13 @@ Available notes:
     - [troubleshooting](https://github.com/RosenLo/notes/blob/master/Linux/troubleshooting.md)
 - Golang
 	- [Golang 切片与函数参数“陷阱”](https://github.com/RosenLo/notes/blob/master/golang/docs/slice_with_array.md)
+    - Golang 标准库学习
 - Python
 	- [谈谈 Python 的生成器](https://github.com/RosenLo/notes/blob/master/python/docs/talk_yield.md)
-    - python标准库学习
+    - [Python 标准库学习](https://github.com/RosenLo/notes/blob/master/python/python_standard_library.md)
 - Docker
     - [Docker 基础学习](https://github.com/RosenLo/notes/blob/master/docker/getting_started.md)
+    - Dockerfile
 - Kubernetes
 	- [Concepts](https://github.com/RosenLo/notes/blob/master/k8s/concepts.md)
 	- [Kubernetes 代理使用技巧](https://github.com/RosenLo/notes/blob/master/k8s/k8s_proxy.md)
