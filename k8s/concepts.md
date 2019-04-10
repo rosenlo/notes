@@ -18,7 +18,7 @@ obtain adopt understanding of how Kubernetes works.
     - [Kube-scheduler](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-scheduler/)
 - Each individual non-master node in your cluster runs two processes:
     - [Kublet](https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/), which communicates with the Kubernetes Master.
-    - [Kube-proxy](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/), a network proxy which relects Kubernetes networking services on each node.
+    - [Kube-proxy](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/), a network proxy which reflects Kubernetes networking services on each node.
 
 
 # Kubernetes Objects
@@ -43,6 +43,86 @@ features. they include:
 * [DaemonSet](#DaemonSet)
 * [Job](#job)
 <!-- GFM-TOC -->
+
+
+## Understanding Kubernetes Objects
+
+Kubernetes Objects 在 Kubernetes 系统中表现为持久化实体，用来展示你应用的状态。
+
+- 容器应用运行在哪个节点
+- 应用的可用资源
+- 管理应用的策略如：重启、升级、容错
+
+要使用 Kubernetes Objects 去创建、修改、删除。可以使用 [Kubernetes API](#Kubernetes-API) 的命令行工具 `kubectl` 。
+还可以在自己的程序中直接使用 [Client Libraries](https://kubernetes.io/docs/reference/using-api/client-libraries/) 
+
+### Object Spec and Stauts
+
+每个 Kubernetes Object 都包含了两个嵌套对象字段（Spec、Status），它们管理着 Object 配置。
+
+- Spec - 描述 Object 的所需状态，希望具备哪些特征，用户必须提供
+- Status - 描述 Object 真实的状态，由 Kubernetes 系统提供，且时时刻刻在管理
+  Object 的状态与 Spec 提供的状态保持一致
+
+For example:
+
+一个 Kubernetes Deployment 是一个 Object
+。它可以表示一个应用在集群中运行，当你创建 Deployment
+，希望运行三个实例，需要在 Spec 中设置 `replicas: 3` 。Kubernetes
+系统会读取 Deployment Spec 然后启动三个实例运行你的应用，如果有失败或 status
+改变，Kubernetes 修复状态直到与 Spec 中状态一致。
+
+更多关于 Object Spec, Status 和 metadata 在 [Kubernetes API Conventions](#https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md)
+
+
+### Describing a Kubernetes Object
+
+当你在 Kubernetes 中创建一个 object， 你需要提供一些必要的信息关于这个 object 如：`name`
+
+当你使用 Kubernetes API 去创建一个 object （或直接通过`kubectl`） ，这个 API
+请求 body 是 JSON 格式，但大多数情况下，我们会写一个`.yaml`的文件然后使用`kubectl` 创建 object
+
+For example：
+
+```yaml
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        ports:
+        - containerPort: 80
+```
+
+```shell
+kubectl apply -f https://k8s.io/examples/application/deployment.yaml --record
+```
+
+输出类似于:
+
+```
+deployment.apps/nginx-deployment created
+```
+
+#### Required Fields
+
+在 `.yaml` 文件中需要设置以下几个字段
+
+- `apiVersion` - 哪个 Kubernetes API 版本
+- `kind` - 你想创建的类型
+- `metadata` - 有助于唯一识别的数据，包含了 `name` , UID 和 可选的 `namespace`
 
 
 
