@@ -124,6 +124,12 @@ deployment.apps/nginx-deployment created
 - `kind` - 你想创建的类型
 - `metadata` - 有助于唯一识别的数据，包含了 `name` , UID 和 可选的 `namespace`
 
+更多关于 Kubernetes spec 字段:
+
+- [Kubernetes API Reference](#https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.14/)
+- [Sepc for Pod](#https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.14/#podspec-v1-core)
+- [Spec for Deployment](#https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.14/#deploymentspec-v1-apps)
+
 
 
 ## Pods
