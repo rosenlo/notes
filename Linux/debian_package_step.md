@@ -156,7 +156,7 @@ fpm -s dir -t deb \
 -n ops-updater \
 -v 1.0.1 \
 -C ops-updater \
---description 'dada agent updater deb package'  \
+--description 'agent updater deb package'  \
 --before-install /data/script/install_ops_updater_before.sh \
 --after-install /data/script/install_ops_updater_after.sh \
 --before-remove /data/script/uninstall_ops_updater_before.sh \
