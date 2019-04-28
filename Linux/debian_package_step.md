@@ -48,8 +48,8 @@ gem sources -a http://ruby.sdutlinux.org/
 
 role    | ip       | hostname
 --------|----------|---------
-打包机  | 10.9.0.1 | fpm09-001
-deb仓库 | 10.9.0.2 | deb09-002
+打包机  | 10.0.0.1 | fpm001
+deb仓库 | 10.0.0.2 | deb001
 
 
 ### 2.2 配置 deb 包
@@ -103,11 +103,6 @@ autostart() {
     fi
 }
 
-host_check() {
-    if [ $(grep "git.corp.imdada.cn" /etc/hosts | wc -l) == 0 ];then
-        echo "10.10.91.25 git.corp.imdada.cn" >> /etc/hosts
-    fi
-}
 
 start_server() {
     chown -R app:app /opt/ops/updater
@@ -116,7 +111,6 @@ start_server() {
 }
 
 autostart
-host_check
 start_server
 ```
 
@@ -175,7 +169,7 @@ fpm -s dir -t deb \
 #### 5.1 上传到服务器的仓库目录并更新
 
 ```bash
-# root@deb09-002:/data/repo/ubuntu
+# root@deb001:/data/repo/ubuntu
 dpkg-scanpackages . | gzip > ./Packages.gz
 ```
 
@@ -184,7 +178,7 @@ dpkg-scanpackages . | gzip > ./Packages.gz
 
 
 ```bash
-echo 'deb http://deb.corp.imdada.cn/ubuntu ./' >> /etc/apt/sources.list && apt-get update
+echo 'deb http://deb.example.com/ubuntu ./' >> /etc/apt/sources.list && apt-get update
 ```
 
 #### 5.3 安装自定义 deb 包
