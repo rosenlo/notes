@@ -28,6 +28,7 @@ The Basic Kubernetes objects include:
 <!-- GFM-TOC -->
 * [Pods](#Pods)
 * [Service](#Service)
+    * [Headless Services](#headless-services)
 * [Volume](#Volume)
 * [Namespace](#Namespace)
 <!-- GFM-TOC -->
@@ -147,6 +148,31 @@ managed in Kubernetes, pods represent running processes on nodes in cluster.
 
 
 ## Service
+
+### Headless Services
+
+有时不需要 load-balancing 和一个 service IP，可以创建一个 `headless`
+服务通过指定 `None` 在 `.spec.clusterIP` 字段
+
+这个选项让开发者与 Kubernetes 系统解构，允许他们自由的使用服务发现系统(例如 zookeeper)。
+应用仍然可以使用自注册的模式并且可以轻松地在此 API 上构建用于其他服务发现系统的适配器
+
+对于 `Services`， clusterIP 不用分配， `kube-proxy` 不会处理这个 services
+并且也没有 load-balancing 和 proxying ，DNS 自动配置依赖 service 的 `selectors`
+定义
+
+#### With selectors
+
+对于定义了 selectors 的 headless 服务 ， endpoints controller 会在这个 API 创建 `Endpoints` 记录，然后修改 DNS 配置，返回一个直接指向 Pods IP 的 A 记录
+
+#### Without selectors
+
+对于未定义 selectors 的 headless 服务， endpoints controller 不会创建
+`Endpoints` 记录。无论如何， DNS 系统会通过以下方式寻找和配置：
+
+- [ExternalName](#externalname) 的 CNAME 记录
+- 适用于所有其他类型, 任何共享同一个名称的 `Endpoints` 记录
+
 ## Volume
 ## Namespace
 
