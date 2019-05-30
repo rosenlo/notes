@@ -1,6 +1,6 @@
 # DNS for Services and Pods
 
-本文提供了 Kubernetes 对DNS 支持的概述
+本文提供了 Kubernetes 对 DNS 支持的概述
 
 
 <!-- vim-markdown-toc GFM -->
@@ -171,7 +171,53 @@ Pods DNS Config 允许用户更好的控制 Pod DNS Settings
 
 以下是用户可以在 `dnsConfig` 字段中指定的属性：
 
-- `namespace` -
-- `searches` -
-- `options` -
+- `namespace` - DNS Server 的 IP 列表，最多三个。如果 `dnsPolicy` 为 `None` ，
+  那最少需要有一个 IP ，否则这个属性是可选的。IP 列表会和 DNS policy 的 DNS
+Server IP 去重合并
+- `searches` - 搜索域，最多六个，可选属性，会和 DNS Policy 的搜索域去重合并
+- `options` - 一个可选的对象列表。每个对象包含一个 `name` 字段（必填）和一个
+  `value` 字段（可选）。会和 DNS Policy 的 options 去重合并
 
+以下是自定义 DNS 的 Pod 一个示例：
+
+service/networking/custom-dns.yaml
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: default
+  name: dns-example
+spec:
+  containers:
+    - name: test
+      image: nginx
+  dnsPolicy: "None"
+  dnsConfig:
+    nameservers:
+      - 1.2.3.4
+    searches:
+      - ns1.svc.cluster.local
+      - my.dns.search.suffix
+    options:
+      - name: ndots
+        value: "2"
+      - name: edns0
+```
+
+当上面的 Pod 创建成功，`/etc/resolv.conf` 将会有以下内容：
+
+```
+nameserver 1.2.3.4
+search ns1.svc.cluster.local my.dns.search.suffix
+options ndots:2 edns0
+```
+
+对于 IPv6 设置，search 和 nameserver 将会类似于以下内容：
+
+```
+$ kubectl exec -it dns-example -- cat /etc/resolv.conf
+nameserver fd00:79:30::a
+search default.svc.cluster.local svc.cluster.local cluster.local
+options ndots:5
+```
