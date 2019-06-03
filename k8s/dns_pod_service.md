@@ -48,7 +48,7 @@ namespace `bar` 可以通过 DNS query `foo` 查询到该服务。 一个 pod �
 
 ### SRV records
 
-为 named ports 创建 SRV 记录，它属于 normal 或 [Headless Services]() 的一部分。
+为 named ports 创建 SRV 记录，它属于 normal 或 [Headless Services](https://github.com/RosenLo/notes/blob/master/k8s/concepts.md#headless-services) 的一部分。
 
 SRV record 的组成形式如： `_my-port-name._my-port-protocol.my-svc.my-namespace.svc.cluster.local`
 
