@@ -225,6 +225,99 @@ A Depolyment controller provides declarative updates for Pods and ReplicaSets.
 - Manage the creation and scaling of pods.
 
 ## StatefulSet
+
+管理 `Deployment` 和 `Pods` 扩展，对 Pods 的排序和唯一性提供保障。
+
+和 `Deployment` 一样，`StatefulSet` 管理 Pod 基于相同的容器 `spec`
+。不一样的是， `StatefulSet` 对每个 Pod 维护了一个持久的标识，这些 Pod 被同样的
+`spec` 创建，但是不可变的。每个都有一个持久化标识，它在重新调度后都会保留。
+
+StatefulSet 与其他 Controller 在相同的模式下运转。在 StatefulSet
+对象定义的状态， StatefulSet controller 会进行任何有必要的更新达到此状态。
+
+### Using StatefulSet
+
+StatefulSets 对有状态的应用程序非常有用，有以下要求：
+
+- 稳定, 独特的网络标识
+- 持久化存储
+- 有序，优雅的部署方式和扩展
+- 自动滚动升级
+
+根据以上，稳定和 Pod 的重新调度的持久性同义。如果你的应用不要求任何稳定标识符或有序的部署、删除、扩展，可以无状态部署。
+例如使用 [Deployment](#Deployment) 或 [ReplicaSet](#ReplicaSet) 会更适合。
+
+### Limitations
+
+- StatefulSet 在 1.9 版本之前是 beta 资源，在 1.5 版本之甚至还没有
+- 为了确保数据安全，删除或扩展 StatefulSet 不会删除相关 volumes
+- StatefulSet 现在要求创建一个 [Headless Service](#headless-service) 为 Pod
+  提供网络识别
+- StatefulSet 在删除时，不会提供任何终止 Pod 的保障，要达到有序、优雅终止 Pod
+  ，需要在删除前伸缩 StatefulSet replica 为 0
+- 当使用默认的 [Pod 管理策略](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies) (`OrderedReady`) [Rolling Updates](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#rolling-updates)，可能会进入一个破碎状态，需要 [手动干预修复](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#forced-rollback)
+
+### Components
+
+以下的例子演示了 StatefulSet 组件
+
+- 一个名字叫 nginx 的Headless Service，用来控制网络域
+- 一个名字叫 web 的 StatefulSet object， 声明了 3 个 nginx 容器副本在唯一的 Pod
+  中启动
+- volumenClaimTemplates 通过 PersistentVolume Provisioner 配置
+  [PersistentVolumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) 提供了稳定存储
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web
+spec:
+  selector:
+    matchLabels:
+      app: nginx # has to match .spec.template.metadata.labels
+  serviceName: "nginx"
+  replicas: 3 # by default is 1
+  template:
+    metadata:
+      labels:
+        app: nginx # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: nginx
+        image: k8s.gcr.io/nginx-slim:0.8
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: www
+          mountPath: /usr/share/nginx/html
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "my-storage-class"
+      resources:
+        requests:
+          storage: 1Gi
+```
+
 ## DaemonSet
 ## Job
 
