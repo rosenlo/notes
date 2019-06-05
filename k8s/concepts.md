@@ -244,7 +244,7 @@ StatefulSets 对有状态的应用程序非常有用，有以下要求：
 - 有序，优雅的部署方式和扩展
 - 自动滚动升级
 
-根据以上，稳定和 Pod 的重新调度的持久性同义。如果你的应用不要求任何稳定标识符或有序的部署、删除、扩展，可以无状态部署。
+根据以上，稳定和 Pod 的重新调度的持久性同义。如果你的应用不要求任何稳定标识符或顺序的部署、删除、扩展，可以无状态部署。
 例如使用 [Deployment](#Deployment) 或 [ReplicaSet](#ReplicaSet) 会更适合。
 
 ### Limitations
@@ -265,7 +265,7 @@ StatefulSets 对有状态的应用程序非常有用，有以下要求：
 - 一个名字叫 web 的 StatefulSet object， 声明了 3 个 nginx 容器副本在唯一的 Pod
   中启动
 - volumenClaimTemplates 通过 PersistentVolume Provisioner 配置
-  [PersistentVolumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) 提供了稳定存储
+  [PersistentVolumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) 提供稳定存储
 
 ```yaml
 apiVersion: v1
@@ -317,6 +317,106 @@ spec:
         requests:
           storage: 1Gi
 ```
+
+### Pod Selector
+
+必须配置 StatefulSet `.spec.selector` 字段匹配 `.spec.template.metadata.labels`
+的标签。 在 Kubernetes 1.8 之前， `.spec.selector` 字段省略时为默认值。
+在1.8之后的版本，如果没有指定匹配 Pod Selector， 在创建 StatefulSet
+时会引起 validation 错误
+
+### Pod Identity
+
+StatefulSet Pods 具有唯一标识，是一组具有稳定网络标识和稳定存储的顺序组成。这个标识附属在 Pod
+不管它重新调度在哪个节点上都会保留。
+
+#### Ordinal Index
+
+对具有 N 个副本的 StatefulSet ，每个 Pod 都会分配一个顺序数字，从 0 到 N - 1
+，在这个 Set 上唯一。
+
+#### Stable Network ID
+
+每个在 StatefulSet 中的 Pod 都从 StatefulSet 的名字和 Pod
+的顺序衍生出来，这个构建的形式是 `$(statefulset name)-$(ordinal)`
+，上面的示例会创建出三个 Pod 名字 `web-0,web-1,web-2` 。而这些 Pod 可以通过
+[Headless Service](#headless-service) 控制访问，这个服务管理域名的形式为： `$(service name).$(namespace).svc.cluster.local` ，"cluster.local" 就是 cluster 的域，
+每个 Pod 创建会得到一个 DNS name， 形式为： `$(podname).$(governing service domain)`，这个 governing service 在 StatefulSet 中的 `serviceName` 定义。
+
+在 [limitations](#limitations) 中说到，有必要创建一个 [Headless Service](#headless-service) 作为 Pods 的网络标识
+
+#### Stable Storage
+
+kubernetes 为每个 VolumeClaimTemplate 创建一个 PersistentVolume 。 在上面 nginx
+的示例中，每个 Pod 会接收到一个名字叫 `my-storage-class` 的 StorageClass 和
+1Gib 额度的存储。如果没指定 StorageClass，默认的 StorageClass 被使用。当 Pod
+被重新调度到一个节点， 它的 `volumeMounts` 会根据 PersistentVolume Claims
+挂载相关的 PersistentVolume 。 注意在删除时这个 PersistentVolume
+不会被删除，如果要删除需要手动处理。
+
+#### Pod Name Label
+
+当 StatefulSet 创建 Pod 时， 会添加一个 label: `statefulset.kubernetes.ioo/pod-name: $(pod name)` 。这个 label 允许 Service 映射到 StatefulSet 指定的 Pod
+
+### Deployment and Scaling Guarantees
+
+- 对于一个具有 N 个副本的 StatefulSet 来说，Pod 以顺序的形式创建: {0..N-1}
+- 当 Pods 被删除，以倒序的形式删除: {N-1..0}
+- 伸缩扩展 Pod 操作前置条件为：所有 Pod 必须 Running 和 Ready
+- 终止 Pod 操作前置条件为：所有 Pod 必须完全 shutdown
+
+StatefulSet 不应该指定 `pod.Spec.TerminationGracePeriodSeconds` 为 0
+，这非常不安全，强烈反对。更多信息参考 [force deleting StatefulSet Pods](https://kubernetes.io/docs/tasks/run-application/force-delete-stateful-set-pod/)
+
+当上面 nginx 的示例创建，三个 Pods 会顺序创建 web-0, web-1, web-2。如果 web-0
+没有 [Running and Ready](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/) web-1 不会被创建并且 web-2 也不会被创建，直到 web-1 Running and Ready 。
+如果在 web-1 Running and Ready 之后 web-0 失败了， web-2 不会被创建，直到 web-0
+重新启动并且 Running and Ready
+
+如果用户调整副本数为 `replicas=1` ，那么 web-2 首先被终止， web-1 会先等 web-2
+完全 shutdown 和删除后再终止、删除。如果 web-0 在 web-2 终止、删除后 web-1 未删除的情况下状态进入 fail，那么 web-1 会保留直到 web-0 恢复 Running and Ready
+
+##### Pod Management Policies
+
+在 kubernetes 1.7 之后， StatefulSet 放宽了有序保障，通过提供 `.spec.podManagementPolicy` 字段来预防唯一性身份标识
+
+#### OrderedReady Pod Management
+
+`OrderedReady` pod management 是默认的 StatefulSet 策略，行为参考 [Deployment and Scaling Guarantees](#deployment-and-scaling-guarantees)
+
+#### Parallel Pod Management
+
+`Parallel` pod management 告诉 StatefulSet controller 并行去启动或删除
+Pods，不等待 Pods Running and Ready 或完全 terminated。这个选项仅影响 scaling
+操作， Updates 不受影响。
+
+
+### Update Strategies
+
+在 Kubernetes 1.7 之后， StatefulSet `.spec.updateSrategy`
+字段允许为 StatefulSet 中的 Pod 配置和禁用容器，labels、 resource
+request/limits 和 annotations 的自动 rolling updates
+
+#### On Delete
+
+这个 `OnDelete` 更新策略实现了 1.6 之前的遗留行为。当一个 StatefulSet
+`.spec.updateStrategy.type` 设置为 `OnDelete`， StatefulSet controller
+不会自动更新 Pods，用户需要手动删除 pod 去触发 controller 创建一个新的 pods
+
+#### Rolling Updates
+
+这个 `RollingUpdate` 更新策略实现了 Pods 的滚动升级，这也是默认策略当没有指定
+`.spec.updateStrategy` 字段。
+
+当设置为 `RollingUpdate`，这个 StatefulSet controller 会倒序删除并重建每一个
+Pod，也就是删一个重建一个。
+
+##### Partitions
+
+`RollingUpdate` 还可以设置 partition :
+`.spec.updateStrategy.rollingUpdate.partition`，如果指定了
+partition，当 StatefulSet `.sepc.template` 更新，那么所有序号大于或等于 partition 的 Pod 将会进行更新，小于的则不会更新。
+
 
 ## DaemonSet
 ## Job
