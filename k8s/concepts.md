@@ -1,6 +1,54 @@
 The Concepts section helps you quickly learn about the parts of the Kubernetes system and abstractions Kubernetes uses to represent your cluster, and helps you
 obtain adopt understanding of how Kubernetes works.
 
+
+<!-- vim-markdown-toc GFM -->
+
+* [Overview](#overview)
+* [Kubernetes Objects](#kubernetes-objects)
+    * [Understanding Kubernetes Objects](#understanding-kubernetes-objects)
+        * [Object Spec and Stauts](#object-spec-and-stauts)
+        * [Describing a Kubernetes Object](#describing-a-kubernetes-object)
+            * [Required Fields](#required-fields)
+    * [Pods](#pods)
+        * [Termination of Pods](#termination-of-pods)
+        * [Disruptions](#disruptions)
+            * [Voluntary and Involuntary Disruptions](#voluntary-and-involuntary-disruptions)
+    * [Service](#service)
+        * [Headless Services](#headless-services)
+            * [With selectors](#with-selectors)
+            * [Without selectors](#without-selectors)
+    * [Volumes](#volumes)
+    * [Namespace](#namespace)
+    * [ReplicaSet](#replicaset)
+    * [Deployment](#deployment)
+    * [StatefulSet](#statefulset)
+        * [Using StatefulSet](#using-statefulset)
+        * [Limitations](#limitations)
+        * [Components](#components)
+        * [Pod Selector](#pod-selector)
+        * [Pod Identity](#pod-identity)
+            * [Ordinal Index](#ordinal-index)
+            * [Stable Network ID](#stable-network-id)
+            * [Stable Storage](#stable-storage)
+            * [Pod Name Label](#pod-name-label)
+        * [Deployment and Scaling Guarantees](#deployment-and-scaling-guarantees)
+                * [Pod Management Policies](#pod-management-policies)
+            * [OrderedReady Pod Management](#orderedready-pod-management)
+            * [Parallel Pod Management](#parallel-pod-management)
+        * [Update Strategies](#update-strategies)
+            * [On Delete](#on-delete)
+            * [Rolling Updates](#rolling-updates)
+                * [Partitions](#partitions)
+                * [Forced Rollback](#forced-rollback)
+    * [DaemonSet](#daemonset)
+    * [Job](#job)
+* [Kubernetes Control Plane](#kubernetes-control-plane)
+    * [Kubernetes Master](#kubernetes-master)
+    * [Kubernetes Nodes](#kubernetes-nodes)
+
+<!-- vim-markdown-toc -->
+
 # Overview
 
 - You can use Kubernetes API objects to describe your cluster's state:
@@ -176,6 +224,21 @@ Pod 表示为集群中节点上的一个进程，重要的是允许进程优雅�
 Kill，应用没有机会回收清理）。用户可以请求删除并且知道进程何时终止，还能保证删除最终完成。
 当用户请求删除一个 Pod  时，系统在允许强制删除 Pod 前记录宽限期。
 
+### Disruptions
+
+本部分适用于想要构建高可用应用程序的人，需要了解 Pod 可能会发生的中断类型。
+
+也适用于希望执行自动集群操作（如：升级、集群自动伸缩）的集群管理员
+
+#### Voluntary and Involuntary Disruptions
+
+Pod 不会自己消亡，除非被人为或 controller
+销毁，也有可能是因为硬件故障或软件错误导致。
+
+硬件故障的情况叫做 Involuntary disruptions。 example：
+
+- 物理机的硬件故障导致 Node broken
+- 集群管理员错误删除了 VM instance
 
 
 ## Service
@@ -415,7 +478,24 @@ Pod，也就是删一个重建一个。
 
 `RollingUpdate` 还可以设置 partition :
 `.spec.updateStrategy.rollingUpdate.partition`，如果指定了
-partition，当 StatefulSet `.sepc.template` 更新，那么所有序号大于或等于 partition 的 Pod 将会进行更新，小于的则不会更新。
+partition，当 StatefulSet `.sepc.template` 更新，那么所有序号大于或等于 partition 的 Pod 将会进行更新，小于的则不会更新。及时被删除了也会重建之前的版本。
+如果 StatefulSet 的 `.spec.updateStrategy.rollingUpdate.partition` 大于 `.spec.replicas` 则更新其 `.spec.template` 不会被传播到 Pods，在大多数情况下用不到 partition，
+但对于需要稳定更新、回滚、金丝雀或分阶段发布非常有用
+
+##### Forced Rollback
+
+使用默认 [Pod 管理策略](#pod-management-policy) `OrderedReady` 的 [Rolling Updates](#rolling-updates) 时，如果进入 broken 状态，有可能需要手工修复。
+
+如果更新 Pod template 到一个永远无法 Running and Ready 的配置
+（如：一个有问题的二进制文件或应用层面的配置错误），StatefulSet 会停止
+rollout 并且进入等待。
+
+在这种状态下，将 Pod template 配置恢复成正确是不够的，因为一个[已知 issue](https://github.com/kubernetes/kubernetes/issues/67250)
+StatefulSet 会持续去等待 broken 的 pod 恢复成 Ready
+（永远不会发生），再尝试恢复成可运行的配置
+
+在恢复 template 后，需要删除 StatefulSet 创建的所有 Pods，然后 StatefulSet
+会使用恢复 template 后的配置重建创建 Pods
 
 
 ## DaemonSet
