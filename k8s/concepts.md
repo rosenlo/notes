@@ -14,6 +14,7 @@ obtain adopt understanding of how Kubernetes works.
         * [Termination of Pods](#termination-of-pods)
         * [Disruptions](#disruptions)
             * [Voluntary and Involuntary Disruptions](#voluntary-and-involuntary-disruptions)
+            * [Dealing with Disruptions](#dealing-with-disruptions)
     * [Service](#service)
         * [Headless Services](#headless-services)
             * [With selectors](#with-selectors)
@@ -33,7 +34,7 @@ obtain adopt understanding of how Kubernetes works.
             * [Stable Storage](#stable-storage)
             * [Pod Name Label](#pod-name-label)
         * [Deployment and Scaling Guarantees](#deployment-and-scaling-guarantees)
-                * [Pod Management Policies](#pod-management-policies)
+            * [Pod Management Policies](#pod-management-policies)
             * [OrderedReady Pod Management](#orderedready-pod-management)
             * [Parallel Pod Management](#parallel-pod-management)
         * [Update Strategies](#update-strategies)
@@ -237,11 +238,41 @@ Pod 不会自己消亡，除非被人为或 controller
 
 硬件故障的情况叫做 Involuntary disruptions。 example：
 
-- 物理机的硬件故障导致 Node broken
-- 集群管理员错误删除了 VM instance
+- 物理机的硬件故障导致 Node 破坏
+- 集群管理员错误删除了 VM 实例
+- 云厂商虚拟化失败导致的 VM 失联
+- 内核 panic
+- 集群网络分区导致节点失联
+- 由于节点[资源不足](https://kubernetes.io/docs/tasks/administer-cluster/out-of-resource/)导致 pod 回收
 
+除了资源不足，其他条件大部分都很常见，并不是 kubernetes 特有的。
+
+而其他情况叫做 voluntary disruptions，包括不限于应用程序初始化或通过集群管理员初始化。 典型应用程序操作包括：
+
+- 删除管理 pod 的 deployment 或者其他 controller
+- 更新 deployment template 引起的 restart
+- 直接删除一个 pod （例如：意外）
+
+集群管理员操作包括：
+
+- 踢掉一台 node ，修复或升级
+- [集群自动伸缩](https://kubernetes.io/docs/tasks/administer-cluster/cluster-management/#cluster-autoscaler)一台 node
+- 从 node 移除一个 pod ，允许其他内容与 node 相符
+
+注意：不是所有 voluntary disruptions 都受限于 Pod Disruptions
+Budgets。例如：删除 deployment 或 pods 会绕过 Pod Disruptions Budgets
+
+
+#### Dealing with Disruptions
+
+下面有些方法可以缓解 involuntary disruptions
+
+- 确保 pod [申请所需资源](https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/)
+- 为应用创建多个副本，如果需要高可用（了解更多关于运行[无状态应用](https://github.com/RosenLo/notes/blob/master/k8s/run_stateless_application_deployment.md)和[有状态应用](https://github.com/RosenLo/notes/blob/master/k8s/concepts.md#statefulset)）
+- 甚至运行副本的应用更高的可用性
 
 ## Service
+
 
 ### Headless Services
 
@@ -439,7 +470,7 @@ StatefulSet 不应该指定 `pod.Spec.TerminationGracePeriodSeconds` 为 0
 如果用户调整副本数为 `replicas=1` ，那么 web-2 首先被终止， web-1 会先等 web-2
 完全 shutdown 和删除后再终止、删除。如果 web-0 在 web-2 终止、删除后 web-1 未删除的情况下状态进入 fail，那么 web-1 会保留直到 web-0 恢复 Running and Ready
 
-##### Pod Management Policies
+#### Pod Management Policies
 
 在 kubernetes 1.7 之后， StatefulSet 放宽了有序保障，通过提供 `.spec.podManagementPolicy` 字段来预防唯一性身份标识
 
