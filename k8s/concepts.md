@@ -15,6 +15,10 @@ obtain adopt understanding of how Kubernetes works.
         * [Disruptions](#disruptions)
             * [Voluntary and Involuntary Disruptions](#voluntary-and-involuntary-disruptions)
             * [Dealing with Disruptions](#dealing-with-disruptions)
+        * [How Disruption Budgets Work](#how-disruption-budgets-work)
+            * [PDB Example](#pdb-example)
+            * [Separating Cluster Owner and Application Owner Roles](#separating-cluster-owner-and-application-owner-roles)
+            * [How to perform Disruptive Actions on your Cluster](#how-to-perform-disruptive-actions-on-your-cluster)
     * [Service](#service)
         * [Headless Services](#headless-services)
             * [With selectors](#with-selectors)
@@ -269,10 +273,127 @@ Budgets。例如：删除 deployment 或 pods 会绕过 Pod Disruptions Budgets
 
 - 确保 pod [申请所需资源](https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/)
 - 为应用创建多个副本，如果需要高可用（了解更多关于运行[无状态应用](https://github.com/RosenLo/notes/blob/master/k8s/run_stateless_application_deployment.md)和[有状态应用](https://github.com/RosenLo/notes/blob/master/k8s/concepts.md#statefulset)）
-- 甚至运行副本的应用更高的可用性
+- 为运行副本应用时获得更高的可用性，可以在跨机架（使用 [anti-affinity](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity-beta-feature)）、跨地域（如果使用 [multi-zone cluster](https://kubernetes.io/docs/setup/multiple-zones/)）上分布应用
+
+Kuberntes 提供了一个功能可以帮助在频繁的 voluntary disruption 的同时运行高可用应用，这个功能叫做 `Disruptions Budgets`
+
+### How Disruption Budgets Work
+
+- 应用 Owner 可以为每个应用创建 `PodDisruptionBudget` 对象 (PDB)。一个 PDB
+限制了同时 voluntary disruptions 的 Pods 副本数量。例如：
+    - 一个 [quorum](https://en.wikipedia.org/wiki/Quorum)-based 应用要求运行的副本数不能低于 quorum 要求的数量
+    - 一个 web 前端服务需要后端 server 副本数保证一定的比例提供服务。
+- 管理员应该调用 [Eviction API](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/#the-eviction-api) 而不是直接删除 pods 或 deployments 来管理
+PDB。例如：
+    - `kubectl drain` 命令和 kubernetes-on-GCE 集群升级脚本(`cluster/gce/upgrade.sh`)
+- 当集群管理员想要用 `kubectl drain` 踢出一个节点时，这个工具会尝试在这个机器上终止所有 pods。这个终止请求可能会被临时拒绝，然后会定期重试失败的请求直到所有的 pods 终止或达到配置的 timeout 时间。
+- PDB 指定了应用可容忍的副本数，相对于应用预期副本数。例如：
+    - 假设一个 Deployment 指定了 5 个副本:`.spec.replicas: 5`，如果 PDB 允许同一时间有 4 个，那么 Eviction API 会允许同一时间只有 1 个 voluntary disruption，不能有 2 个。
+- 构成一个 pods 应用组使用 label selector ，与其他 application controller (Deployments, StatefulSet) 一样
+- `intended` 的数量是由 pods controller 的 `.spec.replicas` 计算而来。 controller 的发现通过 pods 的 `.metadata.ownerReferences`
+- PDBs 不能阻止 [involuntary disruptions](#involuntary-disruptions) 的发生
+- 由于应用滚动升级引起 Pods 的删除或不可用会被计算到 disruption budget，但 Deployment 和 StatefulSet 的滚动升级不受影响。在应用升级过程中的失败处理哭晕在配置在 controller 的 spec 中（详细请参考[updating a deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment)）
+
+#### PDB Example
+
+一个集群拥有 3 个节点， node-1 到 node-3。这个集群运行了多个应用，一个拥有 3 个副本 `pod-a`, `pod-b` 和 `pod-c`。另一个没有 PDB 不相关的 pod `pod-x` 。集群状态如下：
+
+ node-1         | node-2           | node-3
+----------------|------------------|-------------
+pod-a available | pod-b available  | pod-c available
+pod-x available | |
+
+这 3 个副本属于同一个 deployment，并且 PDB 要求 3 个 pods 最少有 2 个可用。
+
+假设集群管理员想升级内核，使用 `kubectl drain` 踢掉了 node1, kubectl 将会先终止
+`pod-a` 和 `pod-x` ，这个操作立即成功，集群状态如下：
+
+ node-1 draining  | node-2           | node-3
+------------------|------------------|-------------
+pod-a terminating | pod-b available  | pod-c available
+pod-x terminating | |
+
+这个 deployment 通知 `pod-a` 终止，接着在其他节点重建一个 pod 替换成 `pod-d`，
+另外 `pod-x` 也会被重建替换， 假设为 `pod-y`
+
+注意：对于 StatefulSet ， `pod-a` 可能叫做 `pod-1`
+在替换前需要完全终止，并且替换后的节点名称还是 `pod-1` ，但 UID
+变了。否则，这个示例也适用于 StatefulSet
+
+现在集群状态如下：
+
+ node-1 draining  | node-2           | node-3
+------------------|------------------|-------------
+pod-a terminating | pod-b available  | pod-c available
+pod-x terminating | pod-d starting   | pod-y
+
+某些时候集群状态可能如下：
+
+ node-1 drained   | node-2           | node-3
+------------------|------------------|-------------
+                  | pod-b available  | pod-c available
+                  | pod-d starting   | pod-y
+
+
+这个时候如果你想继续踢掉 `node-2` 或 `node-3` , drain 命令会阻塞直到 `pod-b` 恢复 `available`，因为只有 2 个可用 pods 在运行
+
+现在集群状态如下：
+
+ node-1 drained   | node-2           | node-3
+------------------|------------------|-------------
+                  | pod-b available  | pod-c available
+                  | pod-d available  | pod-y
+
+现在管理员尝试踢掉 `node-2`， drain 命令会尝试某种顺序终止 pods ，假设先终止 `pod-b`，然后 `pod-d` ，那么 `pod-b` 会终止成功， `pod-d` 则会被拒绝。
+因为 PDB 要求最少 2 个可用 pods。接着 deployment 会替换掉 `pod-b` 为 `pod-e`，但是因为没有足够的资源调度
+`pod-e`， drain 命令也会被阻塞。
+
+现在集群状态如下
+
+ node-1 drained   | node-2           | node-3          | no node
+------------------|------------------|-----------------|------------
+                  | pod-b available  | pod-c available | pod-e pending
+                  | pod-d available  | pod-y           |
+
+这个时候，管理员需要把 node-1 加回集群才能继续进行升级。
+
+从这个示例可用了解到 Kubernetes 如何改变发生 disruptions 的恢复速度，根据：
+
+- 一个应用需要多少个副本
+- 一个实例优雅退出需要多长时间
+- 启动一个新的实例要花多长时间
+- controller 的类型
+- 集群的资源容量
+
+#### Separating Cluster Owner and Application Owner Roles
+
+通常，集群管理和应用管理职责分离成独立的角色很有用。在下面的这些场景中，职责分离可能有些意义：
+
+- 当有多个应用团队共享一个 kubernetes 集群，这些团队本身就具备一些角色属性
+- 当第三方工作或服务自动化集群管理时
+
+Pod Disruptions Budgets 通过 roles 之间的提供接口来支持职责分离
+
+如果你的组织没有职责分离，那么你不需要用到 Pod Disruption Budgets
+
+
+#### How to perform Disruptive Actions on your Cluster
+
+如果你是管理员，你需要在集群中对所有节点执行 disruptive
+行为，例如：需要对节点系统软件、内核升级。下面有些选择：
+
+- 在升级中接受停机时间
+- 灾备切换到替换集群
+    - 没有停机时间，但需要备份节点和人力切换的成本
+- 编写容忍 disruption 的应用和使用 PDBs
+    - 没有停机时间
+    - 最小化资源占用
+    - 允许更多自动化集群管理
+    - 编写容忍 disruption 的应用比较棘手，但容忍 voluntary disruption
+      的工作与支持自动伸缩并容忍 involuntary disruption 的工作很大程度上重叠
+
 
 ## Service
-
 
 ### Headless Services
 
