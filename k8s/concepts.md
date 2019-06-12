@@ -15,7 +15,7 @@ obtain adopt understanding of how Kubernetes works.
         * [Disruptions](#disruptions)
             * [Voluntary and Involuntary Disruptions](#voluntary-and-involuntary-disruptions)
             * [Dealing with Disruptions](#dealing-with-disruptions)
-        * [How Disruption Budgets Work](#how-disruption-budgets-work)
+            * [How Disruption Budgets Work](#how-disruption-budgets-work)
             * [PDB Example](#pdb-example)
             * [Separating Cluster Owner and Application Owner Roles](#separating-cluster-owner-and-application-owner-roles)
             * [How to perform Disruptive Actions on your Cluster](#how-to-perform-disruptive-actions-on-your-cluster)
@@ -277,7 +277,7 @@ Budgets。例如：删除 deployment 或 pods 会绕过 Pod Disruptions Budgets
 
 Kuberntes 提供了一个功能可以帮助在频繁的 voluntary disruption 的同时运行高可用应用，这个功能叫做 `Disruptions Budgets`
 
-### How Disruption Budgets Work
+#### How Disruption Budgets Work
 
 - 应用 Owner 可以为每个应用创建 `PodDisruptionBudget` 对象 (PDB)。一个 PDB
 限制了同时 voluntary disruptions 的 Pods 副本数量。例如：
