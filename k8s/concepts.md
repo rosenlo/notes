@@ -5,6 +5,9 @@ obtain adopt understanding of how Kubernetes works.
 <!-- vim-markdown-toc GFM -->
 
 * [Overview](#overview)
+* [Kubernetes Control Plane](#kubernetes-control-plane)
+    * [Kubernetes Master](#kubernetes-master)
+    * [Kubernetes Nodes](#kubernetes-nodes)
 * [Kubernetes Objects](#kubernetes-objects)
     * [Understanding Kubernetes Objects](#understanding-kubernetes-objects)
         * [Object Spec and Stauts](#object-spec-and-stauts)
@@ -48,9 +51,6 @@ obtain adopt understanding of how Kubernetes works.
                 * [Forced Rollback](#forced-rollback)
     * [DaemonSet](#daemonset)
     * [Job](#job)
-* [Kubernetes Control Plane](#kubernetes-control-plane)
-    * [Kubernetes Master](#kubernetes-master)
-    * [Kubernetes Nodes](#kubernetes-nodes)
 
 <!-- vim-markdown-toc -->
 
@@ -71,6 +71,28 @@ obtain adopt understanding of how Kubernetes works.
 - Each individual non-master node in your cluster runs two processes:
     - [Kublet](https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/), which communicates with the Kubernetes Master.
     - [Kube-proxy](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/), a network proxy which reflects Kubernetes networking services on each node.
+
+
+# Kubernetes Control Plane
+
+## Kubernetes Master
+
+- The Master is responsible for maintaining the desired state for your cluster
+- The Master automatically handles scheduling the pods across the Nodes in the cluster
+- The Master's automatic scheduling takes into account the available resources on each Node
+
+<div> <img src="../assets/cluster.svg" width="400"/> </div><br>
+
+
+## Kubernetes Nodes
+A Node is a worker machine in Kubernetes and may be either a virtual or a physical machine, A Node can have multiple pods. Each Node is managed by the Master.
+
+Every kubernetes Node runs at least:
+
+- Kubelet, a process responsible for communication between the kubernetes Masster and the Node; it manages the Pods and the containers running on a machine.
+- A container runtime (like Docker, rkt) responsible for pulling the container image from a registry, unpacking the container, and running the application.
+
+<div> <img src="../assets/nodes.svg" width="400"/> </div><br>
 
 
 # Kubernetes Objects
@@ -96,6 +118,7 @@ features. they include:
 * [DaemonSet](#DaemonSet)
 * [Job](#job)
 <!-- GFM-TOC -->
+
 
 
 ## Understanding Kubernetes Objects
@@ -652,28 +675,4 @@ StatefulSet 会持续去等待 broken 的 pod 恢复成 Ready
 
 ## DaemonSet
 ## Job
-
-# Kubernetes Control Plane
-
-## Kubernetes Master
-
-- The Master is responsible for maintaining the desired state for your cluster
-- The Master automatically handles scheduling the pods across the Nodes in the cluster
-- The Master's automatic scheduling takes into account the available resources on each Node
-
-<div> <img src="../assets/cluster.svg" width="400"/> </div><br>
-
-
-
-## Kubernetes Nodes
-A Node is a worker machine in Kubernetes and may be either a virtual or a physical machine, A Node can have multiple pods. Each Node is managed by the Master.
-
-Every kubernetes Node runs at least:
-
-- Kubelet, a process responsible for communication between the kubernetes Masster and the Node; it manages the Pods and the containers running on a machine.
-- A container runtime (like Docker, rkt) responsible for pulling the container image from a registry, unpacking the container, and running the application.
-
-
-<div> <img src="../assets/nodes.svg" width="400"/> </div><br>
-
 
