@@ -13,7 +13,7 @@ jedi==0.12.0
 Jinja2>=2.10.1
 MarkupSafe==1.0
 more-itertools==4.1.0
-parso==0.2.0
+parso
 pexpect==4.5.0
 pickleshare==0.7.4
 pluggy==0.6.0
