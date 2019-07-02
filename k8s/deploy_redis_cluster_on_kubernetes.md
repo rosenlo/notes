@@ -21,7 +21,7 @@
 
 ## Objectives
 
-- 创建一个 StatefulSet
+- 基于 StatefulSet 创建一个高可用的 Redis Cluster
 - 使用`kubectl` 查看 redis 集群的详细信息
 - 了解 redis, redis-cluster 基本概念
 
