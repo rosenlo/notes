@@ -1,4 +1,4 @@
-# 在 Kubernetes 上部署 Redis Cluster
+# 在 Kubernetes 上搭建 Redis Cluster
 
 本文展示如何用 Kubernetes 运行一个 redis 集群
 
@@ -552,7 +552,7 @@ vars currentEpoch 7 lastVoteEpoch 0
 
 - 应用读写情况
 
-可以看到中间切换过程会有短暂不能写入（此时 salve 还是可读状态），但随着 master 切换后，即恢复了写入，数据也没有丢失。
+可以看到中间切换过程会有短暂不能写入（此时 slave 还是可读状态），但随着 master 切换后，即恢复了写入，数据也没有丢失。
 
 ```bash
 for i in `seq 1 100`; do curl http://127.0.0.1:30020; sleep 0.2; done
@@ -587,13 +587,13 @@ connected
 
 发现节点 ip 改变了，那如何修复集群节点信息呢？
 
-**注意**，我们创建了一个 `ConfigMap` 在容器启动时会调用 `/conf/update-node.sh`
+**注意**：我们创建了一个 `ConfigMap` 在容器启动时会调用 `/conf/update-node.sh`
 ，这个脚本会修改 redis nodes 配置文件的 ip 为新容器的
 ip，然后集群恢复开始同步信息
 
 ## Reference
 
-[Deploying Redis Cluster on Top of Kubernetes](https://rancher.com/blog/2019/deploying-redis-cluster/)
-[Kuberntes Docs](https://kubernetes.io/docs/home/)
-[Redis docs](https://redis.io/documentation)
-[Redis cluster tutorial](https://redis.io/topics/cluster-tutorial)
+- [Deploying Redis Cluster on Top of Kubernetes](https://rancher.com/blog/2019/deploying-redis-cluster/)
+- [Kuberntes Docs](https://kubernetes.io/docs/home/)
+- [Redis docs](https://redis.io/documentation)
+- [Redis cluster tutorial](https://redis.io/topics/cluster-tutorial)
