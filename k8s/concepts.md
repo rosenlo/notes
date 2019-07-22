@@ -14,6 +14,12 @@ obtain adopt understanding of how Kubernetes works.
         * [Describing a Kubernetes Object](#describing-a-kubernetes-object)
             * [Required Fields](#required-fields)
     * [Pods](#pods)
+        * [Pods 如何管理多个容器](#pods-如何管理多个容器)
+            * [Networking](#networking)
+            * [Storage](#storage)
+        * [使用 Pods](#使用-pods)
+            * [Pods and Controller](#pods-and-controller)
+        * [Pod Templates](#pod-templates)
         * [Termination of Pods](#termination-of-pods)
         * [Disruptions](#disruptions)
             * [Voluntary and Involuntary Disruptions](#voluntary-and-involuntary-disruptions)
@@ -220,6 +226,31 @@ managed in Kubernetes, pods represent running processes on nodes in cluster.
 
 <div> <img src="../assets/pods.svg" width="500"/> </div><br>
 
+一个 Pod 通常包裹着一个容器（有些场景包裹了多个容器），存储资源和唯一的 IP
+。可以管理哪些容器可以运行，它们共享资源。
+
+目前 Pods 两种使用方式：
+
+- Pods 运行一个容器 - 一个 Pod 一个容器是 Kubernetes 最常见的使用案例；
+- Pods 运行多个容器 - 一个 Pod
+  多个容器是为了满足需要多个容器相互协作共享资源的场景，这些相互协助的容器可以构成一个服务单元：一个容器从共享的 Volume 中对外提供文件，与此同时 `sidecar` 容器负责更新这些文件。
+
+Pod 用来运行应用的实例。如果应用想横向扩展，应该使用多个
+Pods，每个实例一个。在 Kubernetes 中这叫做复制（replication）。Replicated Pods
+的创建和管理作为一个组，抽象称为 Controller
+
+### Pods 如何管理多个容器
+
+Pods 是设计用来支持多个协助进程（作为多容器）组成一个服务单元。这些容器他们共享资源和依赖，互相通讯、相互协调它们何时以及如何终止。
+
+对单个 Pod
+中多个协同和管理的容器进行分组是一个相对高级的使用场景。如何你的多容器需要紧密协作可以使用这个模式。例如：你可能有一个容器提供共享 Volume 的 web 服务，另一个分开的 `sidecar` 容器它负责更新文件。
+
+一些 Pods 拥有 `init containers` (初始化容器) 和 `app containers` (应用容器)
+。初始化容器运行和完成在应用程序启动前。如果未完成，应用容器会 pending
+
+#### Networking
+
 Pod 的共享上下文是一组 Linux namespaces, cgroups 以及可能的隔离方面。与 Docker
 容器的隔离相似。在 Pod 的上下文中，个别的应用程度可能会应用进一步的子隔离。
 
@@ -233,6 +264,8 @@ Pod 里的容器共享 IP 和端口，可以通过`localhost`
 
 就 Docker 构造而言，Pod 建模为一组具有共享 namespaces 和 共享文件系统卷的 Docker 容器。
 
+#### Storage
+
 与单个应用容器一样， Pod 被认为是相对短暂（而不是需要持久化）的实体。正如 [Pod
 生命周期](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/)讨论一样，Pods
 创建分配一个唯一 ID(UID)，然后调度到 Nodes 直到被终止（根据重启 Policy ）或被删除。如果 Node
@@ -245,6 +278,55 @@ controller](#https://kubernetes.io/docs/concepts/workloads/controllers/replicati
 Pod 共存亡。假设 Pod 由于某种原因被删除了，甚至是被替换创建，那与 Pod
 有相同生命周期的东西（如：Volumes）也会被删除后再创建。
 
+
+### 使用 Pods
+
+一般很少直接创建 Pod，而是通过 `Controllers` 来编排管理。
+
+**注意：** 在 Pod 中重启一个容器不等于重启 Pod， Pod
+本身不会运行，它是容器运行的环境，直到删除才消失。
+
+Pods 本身不会自我修复，如果 Pod 调度到 Node 失败，或者调度操作本身失败， 这个
+Pod 会被删除。同样，如果因为资源不足或 Node 维护状态， Pod 也不会存活。
+因此 Kubernetes 有一个更高层级的抽象，叫做 `Controller` ，用来编排和自愈 Pods
+
+#### Pods and Controller
+
+Controller 可以为你创建和管理多个 Pods，处理副本和部署以及提供在集群中自愈的能力。例如：如果一个 Node 失联了，Controller 可以自动调度替换上面的 Pod 到其他 Node 上。
+
+一些 Controllers：
+
+- [Deployment](#deployment)
+- [StatefulSet](#statefulset)
+- [DaemonSet](#daemonset)
+
+通常， Controllers 使用 Pod Template 来创建 Pods
+
+### Pod Templates
+
+Pod templates 是 pod 的规范，它也包含在其他对象中。例如： [Replication
+Controllers](#replicationcontroller), [Jobs](#jobs), [DaemonSets](#daemonsets)
+。 Controllers 使用 Pod Templates 创建实际的 Pods
+。下面是一个简单的示例：一个容器打印了一条消息
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+spec:
+  containers:
+  - name: myapp-container
+    image: busybox
+    command: ['sh', '-c', 'echo Hello Kubernetes! && sleep 3600']
+```
+
+不是直接申明所有副本的状态， pod template 更像 cookie 切割者，一旦一个 cookie
+被切割，那么这个 cookie 跟 cutter
+就没有关系了，没有量子纠缠。随后 template 更新了也不会影响已创建的 pods 。但是，如果 pods
+是由 controllers 创建，如果更新了 template 它会更新所有 pods，包括已创建的 pods。
 
 ### Termination of Pods
 
@@ -354,8 +436,8 @@ pod-x terminating | pod-d starting   | pod-y
 
  node-1 drained   | node-2           | node-3
 ------------------|------------------|-------------
-                  | pod-b available  | pod-c available
-                  | pod-d starting   | pod-y
+     -            | pod-b available  | pod-c available
+     -            | pod-d starting   | pod-y
 
 
 这个时候如果你想继续踢掉 `node-2` 或 `node-3` , drain 命令会阻塞直到 `pod-b` 恢复 `available`，因为只有 2 个可用 pods 在运行
@@ -364,19 +446,19 @@ pod-x terminating | pod-d starting   | pod-y
 
  node-1 drained   | node-2           | node-3
 ------------------|------------------|-------------
-                  | pod-b available  | pod-c available
-                  | pod-d available  | pod-y
+       -          | pod-b available  | pod-c available
+       -          | pod-d available  | pod-y
 
 现在管理员尝试踢掉 `node-2`， drain 命令会尝试某种顺序终止 pods ，假设先终止 `pod-b`，然后 `pod-d` ，那么 `pod-b` 会终止成功， `pod-d` 则会被拒绝。
 因为 PDB 要求最少 2 个可用 pods。接着 deployment 会替换掉 `pod-b` 为 `pod-e`，但是因为没有足够的资源调度
 `pod-e`， drain 命令也会被阻塞。
 
-现在集群状态如下
+现在集群状态如下：
 
  node-1 drained   | node-2           | node-3          | no node
 ------------------|------------------|-----------------|------------
-                  | pod-b available  | pod-c available | pod-e pending
-                  | pod-d available  | pod-y           |
+        -         | pod-b available  | pod-c available | pod-e pending
+        -         | pod-d available  | pod-y           |
 
 这个时候，管理员需要把 node-1 加回集群才能继续进行升级。
 
