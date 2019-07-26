@@ -28,6 +28,7 @@ obtain adopt understanding of how Kubernetes works.
             * [PDB Example](#pdb-example)
             * [Separating Cluster Owner and Application Owner Roles](#separating-cluster-owner-and-application-owner-roles)
             * [How to perform Disruptive Actions on your Cluster](#how-to-perform-disruptive-actions-on-your-cluster)
+        * [API Object](#api-object)
     * [Service](#service)
         * [Headless Services](#headless-services)
             * [With selectors](#with-selectors)
@@ -365,7 +366,7 @@ Pod 不会自己消亡，除非被人为或 controller
 集群管理员操作包括：
 
 - 踢掉一台 node ，修复或升级
-- [集群自动伸缩](https://kubernetes.io/docs/tasks/administer-cluster/cluster-management/#cluster-autoscaler)一台 node
+- [集群自动伸缩](https://kubernetes.io/docs/tasks/administer-cluster/cluster-management/#cluster-autoscaler) 一台 node
 - 从 node 移除一个 pod ，允许其他内容与 node 相符
 
 注意：不是所有 voluntary disruptions 都受限于 Pod Disruptions
@@ -436,8 +437,8 @@ pod-x terminating | pod-d starting   | pod-y
 
  node-1 drained   | node-2           | node-3
 ------------------|------------------|-------------
-     -            | pod-b available  | pod-c available
-     -            | pod-d starting   | pod-y
+     nil          | pod-b available  | pod-c available
+     nil          | pod-d starting   | pod-y
 
 
 这个时候如果你想继续踢掉 `node-2` 或 `node-3` , drain 命令会阻塞直到 `pod-b` 恢复 `available`，因为只有 2 个可用 pods 在运行
@@ -446,8 +447,8 @@ pod-x terminating | pod-d starting   | pod-y
 
  node-1 drained   | node-2           | node-3
 ------------------|------------------|-------------
-       -          | pod-b available  | pod-c available
-       -          | pod-d available  | pod-y
+       nil        | pod-b available  | pod-c available
+       nil        | pod-d available  | pod-y
 
 现在管理员尝试踢掉 `node-2`， drain 命令会尝试某种顺序终止 pods ，假设先终止 `pod-b`，然后 `pod-d` ，那么 `pod-b` 会终止成功， `pod-d` 则会被拒绝。
 因为 PDB 要求最少 2 个可用 pods。接着 deployment 会替换掉 `pod-b` 为 `pod-e`，但是因为没有足够的资源调度
@@ -457,8 +458,8 @@ pod-x terminating | pod-d starting   | pod-y
 
  node-1 drained   | node-2           | node-3          | no node
 ------------------|------------------|-----------------|------------
-        -         | pod-b available  | pod-c available | pod-e pending
-        -         | pod-d available  | pod-y           |
+        nil       | pod-b available  | pod-c available | pod-e pending
+        nil       | pod-d available  | pod-y           |
 
 这个时候，管理员需要把 node-1 加回集群才能继续进行升级。
 
@@ -496,6 +497,10 @@ Pod Disruptions Budgets 通过 roles 之间的提供接口来支持职责分离
     - 允许更多自动化集群管理
     - 编写容忍 disruption 的应用比较棘手，但容忍 voluntary disruption
       的工作与支持自动伸缩并容忍 involuntary disruption 的工作很大程度上重叠
+
+### API Object
+
+[Pod-v1-core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.15/#pod-v1-core)
 
 
 ## Service
@@ -756,5 +761,9 @@ StatefulSet 会持续去等待 broken 的 pod 恢复成 Ready
 
 
 ## DaemonSet
+
 ## Job
 
+一个 Job 可以创建一个或多个 Pods，当所有的 Pods 成功完成后， Job
+状态才会成功。需要注意的是 Job 完成后 Pods 不会删除，需要把 Job 删掉，随之 Pods
+才会被删掉。
