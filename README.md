@@ -23,7 +23,7 @@ Available notes:
     - [Python 标准库学习](https://github.com/RosenLo/notes/blob/master/python/python_standard_library.md)
 - Docker
     - [Docker 基础学习](https://github.com/RosenLo/notes/blob/master/docker/getting_started.md)
-    - Dockerfile
+    - [Dockerfile 详解](https://github.com/RosenLo/notes/blob/master/docker/dockerfile_details.md)
 - Kubernetes
 	- [Concepts](https://github.com/RosenLo/notes/blob/master/k8s/concepts.md)
 	- [Kubernetes 代理使用技巧](https://github.com/RosenLo/notes/blob/master/k8s/k8s_proxy.md)
