@@ -14,7 +14,7 @@ HPA 被实现为 Kubernetes 的 API 资源和控制器（controller）, 该资�
 注意：如果有些 pod 没有相关指标，那么控制器不会采取任何动作
 - 针对每个 pod 自定义的 metrics，控制器行为相似，只有一点区别：**只支持始值，不支持利用率值**
 
-HPA 通常从聚合（aggregated）APIs（`metrics.k8s.iod, `custom.metrics.k8s.io`, `external.metrics.k8s.io`） 获取 metrics。`metrics.k8s.io` API 通常由
+HPA 通常从聚合（aggregated）APIs（`metrics.k8s.iod`, `custom.metrics.k8s.io`, `external.metrics.k8s.io`） 获取 metrics。`metrics.k8s.io` API 通常由
 `metrics-server` 提供，它需要独立部署。更多细节参考 [metrics-server](https://kubernetes.io/docs/tasks/debug-application-cluster/resource-metrics-pipeline/#metrics-server)
 
 
