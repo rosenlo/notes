@@ -15,7 +15,7 @@
 
 #### ping: icmp open socket: Operation not permitted
 
-- sympton
+- symptom
 
     普通用户执行 ping 命令报错
 
@@ -38,7 +38,7 @@
 
 ####  [ERR] memberlist: Failed to send gossip to x.x.x.x:8301: write udp [::]:8301->x.x.x.x:8301: sendto: invalid argument
 
-- sympton
+- symptom
 
     QA 环境迁移到 k8s 后，压测发现有许多服务节点状态变得非常不稳定，时而健康时而不健康，影响测试流程。
 
