@@ -3,12 +3,26 @@
 
 <!-- vim-markdown-toc GFM -->
 
+* [Envrionment](#envrionment)
 * [Install And Configure Containerd](#install-and-configure-containerd)
 * [Install And Configure Kubernetes](#install-and-configure-kubernetes)
     * [Install and Configure CNI (flannel)](#install-and-configure-cni-flannel)
 * [References](#references)
 
 <!-- vim-markdown-toc -->
+
+## Envrionment
+
+- CentOS Linux release 7.8.2003 (Core) 4.19.12-1.el7.elrepo.x86_64
+- go version go1.14.4 linux/amd64
+- kata-runtime  1.12.0-alpha0
+- containerd 1.2.13
+- kubeadm-1.16.3
+- kubectl-1.16.3
+- kubelet-1.16.3
+
+
+
 
 ## Install And Configure Containerd
 
