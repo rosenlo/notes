@@ -148,10 +148,11 @@
         startup_delay = "100ms"
     ```
 
--  Reload containerd
+-  Restart containerd
 
     ```bash
     systemctl daemon-reload containerd
+    systemctl restart containerd
     ```
 
 -  Modify cgroup driver `systemd`
@@ -168,8 +169,8 @@
     go get github.com/kubernetes-sigs/cri-tools/cmd/crictl
 
     cat <<EOF > /etc/crictl.yaml
-    runtime-endpoint: unix:///var/run/crio/crio.sock
-    image-endpoint: unix:///var/run/crio/crio.sock
+    runtime-endpoint: unix:///var/run/containerd/containerd.sock
+    image-endpoint: unix:///var/run/containerd/containerd.sock
     timeout: 10
     debug: true
     EOF
@@ -218,14 +219,14 @@
 
 - Modify cgroup-driver  `systemd`
 
-    启动参数添加 `--cgroup-driver=systemd`
-
-
+    add `--cgroup-driver=systemd` to `KUBELET_EXTRA_ARGS`
 
 - Restart kubelet
 
+    ```bash
     systemctl daemon-reload
     systemctl restart kubelet
+    ```
 
 
 - Initialization
