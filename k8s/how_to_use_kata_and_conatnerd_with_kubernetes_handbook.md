@@ -7,6 +7,7 @@
 * [Install And Configure Containerd](#install-and-configure-containerd)
 * [Install And Configure Kubernetes](#install-and-configure-kubernetes)
     * [Install and Configure CNI (flannel)](#install-and-configure-cni-flannel)
+* [Create an untrusted pod using Kata Containers](#create-an-untrusted-pod-using-kata-containers)
 * [References](#references)
 
 <!-- vim-markdown-toc -->
@@ -286,6 +287,56 @@
 
     ```bash
     kubectl taint nodes --all node-role.kubernetes.io/master-
+    ```
+
+## Create an untrusted pod using Kata Containers
+
+默认情况下，所有 pods 都是由默认的 CRI-Containerd 插件创建。
+
+如果希望 Pods 使用 `Kata-Containers Runtime` 只需要在 `annotation` 设置 `io.kubernetes.cri.untrusted-workload: true`
+
+此时就可以在容器内体验如虚机般隔离的感觉，可以安装传统虚机的监控端 例如: `Zabbix-agent`,`Falcon-agent`，也可以安装 `sshd`
+等工具，兼容原有的运维方式，让容器上生产丝滑般顺畅!
+
+- Create an untrusted pod configuration
+
+    ```bash
+    cat << EOT | tee nginx-untrusted.yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+    name: nginx-untrusted
+    annotations:
+        io.kubernetes.cri.untrusted-workload: "true"
+    spec:
+    containers:
+    - name: nginx
+        image: nginx
+    EOT
+    ```
+
+- Create an untrusted pod
+
+    ```bash
+    kubectl apply -f nginx-untrusted.yaml
+    ```
+
+- Check pod is running
+
+    ```bash
+    kubectl get pods
+    ```
+
+- Check hypervisor is running
+
+    ```bash
+    ps aux|grep qume
+    ```
+
+- Delete created pod
+
+    ```bash
+    kubectl delete -f nginx-untrusted.yaml
     ```
 
 ## References
