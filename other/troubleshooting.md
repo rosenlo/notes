@@ -81,6 +81,21 @@
     sysctl -p
     ```
 
+    推荐内核参数
+
+    ```
+    cat /etc/sysctl.d/k8s.conf 
+    net.ipv4.ip_forward=1
+    net.ipv4.conf.eth0.rp_filter=2
+    net.bridge.bridge-nf-call-ip6tables = 1
+    net.bridge.bridge-nf-call-iptables = 1
+    net.ipv4.neigh.default.gc_thresh1 = 2048
+    net.ipv4.neigh.default.gc_thresh2 = 4096
+    net.ipv4.neigh.default.gc_thresh3 = 8192
+    net.ipv4.neigh.default.gc_interval = 120
+    net.ipv4.neigh.default.gc_stale_time = 240
+    ```
+
 - reference
     - [How to increase the ARP cache garbage collection threshold](https://success.docker.com/article/how-to-increase-the-arp-cache-collection-threshold)
     - [ip-sysctl](https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt)
