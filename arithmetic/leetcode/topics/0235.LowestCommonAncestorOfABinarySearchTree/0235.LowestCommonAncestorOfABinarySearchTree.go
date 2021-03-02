@@ -1,7 +1,7 @@
 package leetcode
 
 import (
-	"github.com/rosenlo/notes/arithmetic/notes/arithmetic/leetcode/structure/tree"
+	"github.com/rosenlo/notes/arithmetic/leetcode/structure/tree"
 )
 
 /**

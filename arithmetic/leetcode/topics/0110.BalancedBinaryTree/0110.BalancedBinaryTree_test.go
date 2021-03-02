@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/rosenlo/notes/arithmetic/notes/arithmetic/leetcode/structure/tree"
+	"github.com/rosenlo/notes/arithmetic/leetcode/structure/tree"
 )
 
 func TestBalanced(t *testing.T) {
