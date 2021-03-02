@@ -1,6 +1,6 @@
 package leetcode
 
-import "github.com/rosenlo/leetcode/structure/tree"
+import "github.com/rosenlo/notes/arithmetic/notes/arithmetic/leetcode/structure/tree"
 
 /**
  * Definition for a binary tree node.

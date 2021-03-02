@@ -5,6 +5,8 @@ Just some learning notes collected from individuals and the internet.
 
 Available notes:
 
+- Arithmetic
+    - [LeetCode](https://github.com/rosenlo/notes/tree/master/arithmetic/leetcode)
 - Network
     - [Computer Network](https://github.com/RosenLo/notes/blob/master/network/computer_network.md)
 - Operating System
@@ -42,7 +44,6 @@ Available notes:
 - ELK
 	- [ElasticSearch 集群部署](https://github.com/RosenLo/notes/blob/master/ELK/ElasticSearch/elasticsearch_cluster_deploy.md)
 	- [监控单个节点](https://github.com/RosenLo/notes/blob/master/ELK/ElasticSearch/monitor_individual_nodes.md)
-- Arithmetic
 - Other
     - [Troubleshooting](https://github.com/RosenLo/notes/blob/master/other/troubleshooting.md)
     - Makefile

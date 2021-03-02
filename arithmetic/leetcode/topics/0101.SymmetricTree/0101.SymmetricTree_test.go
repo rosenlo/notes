@@ -3,7 +3,7 @@ package leetcode
 import (
 	"testing"
 
-	"github.com/rosenlo/leetcode/structure/tree"
+	"github.com/rosenlo/notes/arithmetic/notes/arithmetic/leetcode/structure/tree"
 )
 
 func TestSymeetricTree(t *testing.T) {

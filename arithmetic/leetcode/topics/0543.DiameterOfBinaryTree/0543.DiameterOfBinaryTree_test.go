@@ -1,10 +1,10 @@
-package bst
+package leetcode
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/rosenlo/leetcode/structure/tree"
+	"github.com/rosenlo/notes/arithmetic/notes/arithmetic/leetcode/structure/tree"
 )
 
 type param struct {
