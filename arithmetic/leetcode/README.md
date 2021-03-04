@@ -1,4 +1,4 @@
-# leetcode
+# LeetCode
 
 **只记录已完成的题**
 
@@ -26,3 +26,88 @@ No.|Title|Solution|Acceptance|Difficulty|
 0501|Find Mode in Binary Search Tree|[Go](https://github.com/rosenlo/notes/tree/master/arithmetic/leetcode/topics/0501.FindModeinBinarySearchTree)|43.4%|Easy
 0530|Minimum Absolute Difference in BST|[Go](https://github.com/rosenlo/notes/tree/master/arithmetic/leetcode/topics/0530.MinimumAbsoluteDifferenceInBST)|54.8%|Easy
 0543|Diameter of Binary Tree|[Go](https://github.com/rosenlo/notes/tree/master/arithmetic/leetcode/topics/0543.DiameterOfBinaryTree)|49.1%|Easy
+0559|Maximum Depth of N-ary Tree|[Go](https://github.com/rosenlo/notes/tree/master/arithmetic/leetcode/topics/0559.MaximumDepthOfN-aryTree)|69.5%|Easy
+
+## 总结
+
+### Tree
+
+#### 二叉树遍历
+
+```go
+/*
+      1
+     / \
+    2   3
+   / \   \
+  4   5   6
+
+  层次遍历：[1, 2, 3, 4, 5, 6]
+  前序遍历：[1, 2, 4, 5, 3, 6]
+  中序遍历: [4, 2, 5, 1, 3, 6]
+  后序遍历：[4, 5, 2, 6, 3, 1]
+
+*/
+
+// 前序遍历
+func PreOrder(node *TreeNode) []int {
+	if node == nil {
+		return []int{}
+	}
+	return append(append([]int{node.Val}, PreOrder(node.Left)...), PreOrder(node.Right)...)
+}
+
+// 中序遍历
+func InOrder(node *TreeNode) []int {
+	if node == nil {
+		return []int{}
+	}
+	return append(append(InOrder(node.Left), node.Val), InOrder(node.Right)...)
+}
+
+// 后序遍历
+func PostOrder(node *TreeNode) []int {
+	if node == nil {
+		return []int{}
+	}
+	return append(append(PostOrder(node.Left), PostOrder(node.Right)...), node.Val)
+}
+```
+
+#### 二叉树递归
+
+```go
+/*
+  Definition for a binary tree node.
+  type TreeNode struct {
+      Val int
+      Left *TreeNode
+      Right *TreeNode
+  }
+*/
+
+func travel(root *TreeNode) {
+    travel(root.Left)
+    travel(root.Right)
+}
+
+```
+
+#### N 叉树递归
+
+```go
+/*
+  Definition for a Node.
+  type Node struct {
+      Val int
+      Children []*Node
+  }
+*/
+
+func travel(root *TreeNode) {
+    for _, node := range root.Children {
+        travel(node)
+    }
+}
+
+```
