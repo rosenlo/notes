@@ -7,6 +7,7 @@ Available notes:
 
 - Arithmetic
     - [LeetCode](https://github.com/rosenlo/notes/tree/master/arithmetic/leetcode)
+    - [剑指 Offer](https://github.com/rosenlo/notes/tree/master/arithmetic/nowcoder)
 - Network
     - [Computer Network](https://github.com/RosenLo/notes/blob/master/network/computer_network.md)
 - Operating System
