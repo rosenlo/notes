@@ -18,14 +18,8 @@ Follow up:
 If you have figured out the O(n) solution, try coding another solution using the divide and conquer approach, which is more subtle.
 
 
-## 思路
-- 找到数组中最大的元素 O(n)
-- 找出大于零的元素开始折半查找，找到当前元素的最大区间
-- 多个最大区间的最大值比较得出最终的最大区间、最大值
+## 解题思路
 
-这一题可以用 DP 求解也可以不用 DP。
-题目要求输出数组中某个区间内数字之和最大的那个值。dp[i] 表示 [0,i] 区间内各个子区间和的最大值，状态转移方程是 dp[i] = nums[i] + dp[i-1] (dp[i-1] > 0)，dp[i] = nums[i] (dp[i-1] ≤ 0)。
+在迭代循环中拿当前值和之前的累加值比较，如果大于之前的累加值，说明当前值为临时最大值，如果当前值大于最大和，最大和等于当前值
 
-## testcase
-- 数组中可能有多个最大值
-- 总数不一定包含最大值
+核心的区别是不需要把后面的元素全部加完，迭代到当前整数比之前的累计值大的话就可以分配临时最大值了，也就不需要两层循环做这个事了
