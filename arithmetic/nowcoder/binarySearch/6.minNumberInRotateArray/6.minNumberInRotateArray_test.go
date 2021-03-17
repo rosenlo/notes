@@ -10,7 +10,7 @@ type param struct {
 	result int
 }
 
-func TestFibonacci(t *testing.T) {
+func TestMinNumberInRotateArray(t *testing.T) {
 	tests := []param{
 		{
 			[]int{3, 4, 5, 1, 2},
