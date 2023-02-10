@@ -6,7 +6,7 @@ coverage==4.5.1
 decorator==4.3.0
 Flask==1.0
 -e git+git@github.com:RosenLo/notes.git@a20cee2f46e6a2a6bf79091f16a721d76cf67cb7#egg=flaskr&subdirectory=python/codes/flask/tutorial
-ipython==7.16.3
+ipython==8.10.0
 ipython-genutils==0.2.0
 itsdangerous==0.24
 jedi==0.12.0
